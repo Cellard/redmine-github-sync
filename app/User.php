@@ -36,4 +36,18 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function trackers()
+    {
+        return $this->hasMany(Tracker::class);
+    }
+
+    /**
+     * @param string $name
+     * @return Tracker
+     */
+    public function tracker($name)
+    {
+        return $this->trackers()->where('tracker', $name)->firstOrFail();
+    }
 }

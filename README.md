@@ -1,79 +1,77 @@
-<p align="center"><img src="https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg" width="400"></p>
+# Синхронизатор задач
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+Есть проблема, мы вынуждены работать в разных трекерах задач, 
+и нам приходится бегать туда-сюда, и переносить задачи вручную.
 
-## About Laravel
+Зенит ставит задачи в своём `redmine`, мы работаем в своем `redmine`.
+А еще у нас есть `gogs`, где тоже есть задачи. И еще мы хотим работать в `github`, где тоже есть задачи.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Решение
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Синхронизировать задачи автоматически.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Можно определить, что задачи из такого-то проекта в одном трекере
+нужно синхронизировать с задачами из такого-то milestone проекта другого трекера.
 
-## Learning Laravel
+И теперь все новые задачи и все изменения в задачах будут автоматически синхронизироваться.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Концепция приложения
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Пользователь авторизуется в системе, и в своем личном кабинете прописывает API-ключи, открывающие авторизованный доступ к трекерам.
 
-## Laravel Sponsors
+Затем пользователь создает планы синхронизации.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+Пользователь выбирает один трекер, в нем выбирает проект и, если нужно, milestone.
+Потом пользователь выбирает второй трекер, в нем проект и, если нужно, milestone.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
-- [Appoly](https://www.appoly.co.uk)
-- [OP.GG](https://op.gg)
-- [云软科技](http://www.yunruan.ltd/)
+И всё. Дальше действует робот.
 
-## Contributing
+### Что и как синхронизировать
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Синхронизировать нужно тикеты, описание, вложения, статусы и комментарии.
 
-## Code of Conduct
+#### Исполнитель
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+При добавлении тикета его исполнителем назначается тот пользователь, который создал этот план синхронизации.
+Если исполнитель был изменен, то эта информация синхронизируется, только если это возможно.
 
-## Security Vulnerabilities
+Например, Зенит назначает тикеты группе 101 Медиа, соответственно, 
+какого бы исполнителя не назначили мы у себя, в Зенит эту информацию не передать (да и не нужно).
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+#### Статусы/типы тикетов
 
-## License
+Во всех трекерах своя система именования статусов и типов. Сопоставить одно другому можно только вручную.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Поэтому, когда пользователь создает план синхронизации, он должен указать, как статусы соответствуют друг другу,
+а какие статусы вообще следует игнорировать (то есть не синхронизировать тикеты с такими статусами).
+
+Когда другой пользователь создает очередной план синхронизации между трекерами,
+для которых уже составлена карта сопоставления статусов, он может её изменить.
+
+#### Комментарии
+
+Комментарии оставляют всякие люди, в том числе и те, кто не известен системе. 
+Очевидно, что сервис не сможет синхронизировать такие комментарии.
+
+Тут следует заметить, что синхронизации комментария происходит от лица пользователя, его оставившего.
+Если Вася Пупкин оставил комментарий в трекере А, то в трекере Б он должен появиться от имени Васи Пупкина.
+Если Вася Пупкин не предоставил API-ключа от трекера Б, то синхронизация комментария невозможна.
+
+#### А что milestone?
+
+Синхронизировать ли milestone? Непонятно.
+
+Можно предположить, что если пользователь настроил план синхронизации между проектами, 
+то можно синхронизировать и их milestone.
+
+А если план синхронизации настроен между milestone, то тогда синхронизация milestone, конечно, невозможна.
+
+## Техническая шняга
+
+Трекеру пофиг, как был добавлен комментарий. Оставил ли его пользователь лично через веб-интерфейс
+или это сделал робот от его имени — разницы нет, не отличить.
+
+Поэтому такой момент. Когда робот синхронизировал комментарий, он должен где-то запомнить, что он его синхронизировал,
+чтобы не синхронизировать его повторно, создав дубликат.
+
+Не надо забывать, что пользователь может редактировать комментарий. 
