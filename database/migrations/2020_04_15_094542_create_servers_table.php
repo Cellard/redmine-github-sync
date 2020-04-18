@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTrackers extends Migration
+class CreateServersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,12 @@ class CreateTrackers extends Migration
      */
     public function up()
     {
-        Schema::create('trackers', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->string('tracker');
-            $table->string('api_key');
+        Schema::create('servers', function (Blueprint $table) {
+            $table->string('name')->primary();
+            $table->string('driver');
+            $table->string('base_uri');
             $table->timestamps();
             $table->softDeletes();
-
-            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 
@@ -32,6 +29,6 @@ class CreateTrackers extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('trackers');
+        Schema::dropIfExists('servers');
     }
 }

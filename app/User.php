@@ -50,4 +50,14 @@ class User extends Authenticatable
     {
         return $this->trackers()->where('tracker', $name)->firstOrFail();
     }
+
+    public function servers()
+    {
+        return $this->belongsToMany(
+            Server::class, (new ApiKey())->getTable(),
+            'user_id', 'server')
+            ->using(ApiKey::class)
+            ->withPivot('api_key')
+            ->withTimestamps();
+    }
 }
