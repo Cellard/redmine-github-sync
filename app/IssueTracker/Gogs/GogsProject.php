@@ -9,16 +9,17 @@ use Illuminate\Support\Carbon;
 
 class GogsProject extends Project
 {
-    public function getIdentifierAttribute()
+    public static function createFromRemote(array $attributes, string $base_uri)
     {
-        return $this->full_name;
+        $attributes['slug'] = $attributes['full_name'];
+        $attributes['url'] = $base_uri . '/' . $attributes['slug'];
+        return new static($attributes, $base_uri);
     }
-    public function getCreatedAtAttribute($value)
+    public static function createFromLocal(\App\Project $project)
     {
-        return new Carbon($value);
-    }
-    public function getUrlAttribute()
-    {
-        return "{$this->base_uri}/{$this->identifier}";
+        $attributes = $project->toArray();
+        $attributes['id'] = $project->ext_id;
+        $attributes['url'] = $project->server->base_uri . '/' . $attributes['slug'];
+        return new static($attributes, $project->server->base_uri);
     }
 }

@@ -14,6 +14,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::middleware('auth:api')->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    Route::get('drivers', \App\Http\Controllers\Api\DriverController::class . '@index')->name('drivers.index');
+    Route::apiResource('servers', \App\Http\Controllers\Api\ServerController::class);
+
 });

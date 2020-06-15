@@ -5,8 +5,15 @@ namespace App\IssueTracker\Abstracts;
 
 
 use App\IssueTracker\Contracts\ProjectContract;
+use App\Server;
 use Jenssegers\Model\Model;
 
+/**
+ * Class Project
+ * @package App\IssueTracker\Abstracts
+ *
+ * @property-read string $base_uri
+ */
 abstract class Project extends Model implements ProjectContract
 {
     public function __construct(array $attributes, string $base_uri)
@@ -20,10 +27,27 @@ abstract class Project extends Model implements ProjectContract
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'identifier' => $this->identifier,
+            'slug' => $this->slug,
             'description' => $this->description,
-            'created_at' => (string)$this->created_at,
             'url' => $this->url
         ];
+    }
+
+    public function toLocal(Server $server)
+    {
+        /** @var \App\Project $project */
+        $project = \App\Project::withTrashed()->updateOrCreate(
+            [
+                'server_id' => $server->id,
+                'ext_id' => $this->id
+            ],
+            [
+                'slug' => $this->slug,
+                'name' => $this->name,
+                'description' => $this->description
+            ]
+        );
+        $project->restore();
+        return $project;
     }
 }

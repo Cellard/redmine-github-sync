@@ -9,12 +9,17 @@ use Illuminate\Support\Carbon;
 
 class RedmineProject extends Project
 {
-    public function getCreatedAtAttribute()
+    public static function createFromRemote(array $attributes, string $base_uri)
     {
-        return new Carbon($this->created_on);
+        $attributes['slug'] = $attributes['identifier'];
+        $attributes['url'] = $base_uri . '/projects/' . $attributes['slug'];
+        return new static($attributes, $base_uri);
     }
-    public function getUrlAttribute()
+    public static function createFromLocal(\App\Project $project)
     {
-        return "{$this->base_uri}/projects/{$this->identifier}";
+        $attributes = $project->toArray();
+        $attributes['id'] = $project->ext_id;
+        $attributes['url'] = $project->server->base_uri . '/projects/' . $attributes['slug'];
+        return new static($attributes, $project->server->base_uri);
     }
 }

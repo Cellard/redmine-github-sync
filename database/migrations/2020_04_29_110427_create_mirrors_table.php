@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateApiKeysTable extends Migration
+class CreateMirrorProjectsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,14 @@ class CreateApiKeysTable extends Migration
      */
     public function up()
     {
-        Schema::create('api_keys', function (Blueprint $table) {
+        Schema::create('mirrors', function (Blueprint $table) {
+            $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->string('server');
-            $table->string('api_key');
+            $table->morphs('left');
+            $table->morphs('right');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
-            $table->foreign('server')->references('name')->on('servers')->cascadeOnDelete();
-
-            $table->primary(['user_id', 'server']);
         });
     }
 
@@ -33,6 +31,6 @@ class CreateApiKeysTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('api_keys');
+        Schema::dropIfExists('mirrors');
     }
 }

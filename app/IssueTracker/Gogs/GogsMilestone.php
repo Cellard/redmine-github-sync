@@ -5,20 +5,16 @@ namespace App\IssueTracker\Gogs;
 
 
 use App\IssueTracker\Abstracts\Milestone;
-use Illuminate\Support\Carbon;
+use App\IssueTracker\Contracts\ProjectContract;
+use Carbon\Carbon;
 
 class GogsMilestone extends Milestone
 {
-    public function getDueOnAttribute($value)
+    public static function createFromRemote(array $attributes, ProjectContract $project)
     {
-        return $value ? new Carbon($value) : null;
-    }
-    public function getNameAttribute()
-    {
-        return $this->title;
-    }
-    public function getUrlAttribute()
-    {
-        return "{$this->project->url}/issues?state=open&milestone={$this->id}";
+        $attributes['due_on'] = $attributes['due_on'] ? Carbon::parse($attributes['due_on']) : null;
+        $attributes['name'] = $attributes['title'];
+        $attributes['url'] = $project->url . '/issues?state=open&milestone=' . $attributes['id'];
+        return new static($attributes, $project);
     }
 }

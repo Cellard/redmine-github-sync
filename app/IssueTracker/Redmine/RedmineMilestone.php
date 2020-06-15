@@ -5,17 +5,15 @@ namespace App\IssueTracker\Redmine;
 
 
 use App\IssueTracker\Abstracts\Milestone;
-use Illuminate\Support\Carbon;
+use App\IssueTracker\Contracts\ProjectContract;
+use Carbon\Carbon;
 
 class RedmineMilestone extends Milestone
 {
-    public function getDueOnAttribute()
+    public static function createFromRemote(array $attributes, ProjectContract $project)
     {
-        return $this->due_date ? new Carbon($this->due_date) : null;
-    }
-
-    public function getUrlAttribute()
-    {
-        return "{$this->project->base_uri}/versions/{$this->id}";
+        $attributes['due_on'] = @$attributes['due_date'] ? Carbon::parse($attributes['due_date']) : null;
+        $attributes['url'] = $project->url . '/versions/' . $attributes['id'];
+        return new static($attributes, $project);
     }
 }

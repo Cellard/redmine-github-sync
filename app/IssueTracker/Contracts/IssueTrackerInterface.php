@@ -4,8 +4,8 @@
 namespace App\IssueTracker\Contracts;
 
 
+use App\IssueTracker\AccessException;
 use Illuminate\Support\Collection;
-use Jenssegers\Model\Model;
 
 /**
  * Interface IssueTrackerInterface
@@ -19,6 +19,13 @@ interface IssueTrackerInterface
     public function getApiKey();
 
     /**
+     * Get current user
+     * @return UserContract
+     * @throws AccessException
+     */
+    public function getAccount();
+
+    /**
      * Get project listing
      * @param int $page
      * @return Collection|ProjectContract[]
@@ -30,5 +37,12 @@ interface IssueTrackerInterface
      * @param ProjectContract $project
      * @return Collection|MilestoneContract[]
      */
-    public function getMilestones($project);
+    public function getMilestones(ProjectContract $project);
+
+    /**
+     * Get project issue listing
+     * @param ProjectContract $project
+     * @return Collection|IssueContract[]
+     */
+    public function getIssues(ProjectContract $project);
 }
