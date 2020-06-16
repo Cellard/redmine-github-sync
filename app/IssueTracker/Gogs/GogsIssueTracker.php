@@ -13,6 +13,7 @@ use App\IssueTracker\Contracts\MilestoneContract;
 use App\IssueTracker\Contracts\ProjectContract;
 use App\IssueTracker\Contracts\UserContract;
 use App\IssueTracker\Contracts\WithLabels;
+use App\SyncedIssue;
 use bconnect\GogsClient\GogsService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -140,5 +141,48 @@ class GogsIssueTracker extends IssueTracker implements WithLabels
         } catch (\Exception $e) {
             throw new AccessException($e->getMessage(), $e->getCode());
         }
+    }
+
+    public function pushIssue(\App\Issue $issue, \App\Project $project)
+    {
+        $syncedIssue = $project->syncedIssues()->where('issue_id', $issue->id)->first();
+        $gogsProject = GogsProject::createFromLocal($project);
+        if ($syncedIssue) {
+            $this->updateIssue($issue, $gogsProject, $syncedIssue);
+        } else {
+            $this->createIssue($issue, $gogsProject);
+        }
+    }
+
+    protected function createIssue(\App\Issue $issue, ProjectContract $project): void
+    {
+        $response = json_decode($this->client()->post("/api/v1/repos/{$project->slug}/issues", [
+            'json' => [
+                'title' => $issue->subject,
+                'body' => $issue->description,
+                'closed' => !$issue->open
+            ]
+        ])->getBody(), true);
+
+        SyncedIssue::create([
+            'issue_id' => $issue->id,
+            'project_id' => $project->id,
+            'ext_id' => $response['id'],
+            'updated_at' => $response['updated_at']
+        ]);
+    }
+
+    protected function updateIssue(\App\Issue $issue, ProjectContract $project, SyncedIssue $syncedIssue): void
+    {
+        $response = json_decode($this->client()->patch("/api/v1/repos/{$project->slug}/issues/{$syncedIssue->ext_id}", [
+            'json' => [
+                'title' => $issue->subject,
+                'body' => $issue->description,
+                'closed' => !$issue->open
+            ]
+        ])->getBody(), true);
+
+        $syncedIssue->updated_at = $response['updated_at'];
+        $syncedIssue->save();
     }
 }

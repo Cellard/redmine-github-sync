@@ -12,6 +12,7 @@ use App\IssueTracker\Contracts\LabelContract;
 use App\Milestone;
 use App\Mirror;
 use App\Project;
+use App\SyncedIssue;
 use App\User;
 use Illuminate\Console\Command;
 
@@ -54,6 +55,13 @@ class Sync extends Command
                     $author = $remote->author->toLocal($project->server);
 
                     /** @var Issue $issue */
+                    if (SyncedIssue::where([
+                        'ext_id' => $remote->id,
+                        'project_id' => $project->id
+                    ])->first()) {
+                        continue;
+                    }
+                    
                     $issue = Issue::query()->updateOrCreate([
                         'ext_id' => $remote->id,
                         'project_id' => $project->id
@@ -123,7 +131,7 @@ class Sync extends Command
             ->where('slug', 'issue-tracker-syncronizer')
             ->first();
 
-        $mirror->user()->associate(User::query()->find(1));
+        $mirror->user()->associate(User::query()->find(2));
         $mirror->left()->associate($left);
         $mirror->right()->associate($right);
         $mirror->save();

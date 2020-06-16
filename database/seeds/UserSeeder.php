@@ -16,5 +16,9 @@ class UserSeeder extends Seeder
         if (DB::table('users')->where('email', 'pm@101media.ru')->count() == 0) {
             factory(\App\User::class)->create(['email' => 'pm@101media.ru', 'name' => 'Cellard']);
         }
+
+        if (DB::table('users')->where('email', 'ok@101media.ru')->count() == 0) {
+            factory(\App\User::class)->create(['email' => 'ok@101media.ru', 'name' => 'Kirill']);
+        }
     }
 }

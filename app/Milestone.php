@@ -33,6 +33,16 @@ class Milestone extends Model
         return $this->belongsTo(Project::class);
     }
 
+    public function server()
+    {
+        return $this->project->server();
+    }
+
+    public function issues()
+    {
+        return $this->hasMany(Issue::class);
+    }
+
     public function users()
     {
         return $this->belongsToMany(User::class)->withTimestamps();

@@ -48,6 +48,16 @@ class Project extends Model
         return $this->belongsToMany(User::class)->withTimestamps();
     }
 
+    public function issues()
+    {
+        return $this->hasMany(Issue::class);
+    }
+
+    public function syncedIssues()
+    {
+        return $this->hasMany(SyncedIssue::class);
+    }
+
     public function enumerations()
     {
         return $this->hasMany(Label::class);
