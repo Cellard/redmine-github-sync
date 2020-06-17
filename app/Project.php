@@ -60,7 +60,7 @@ class Project extends Model
 
     public function enumerations()
     {
-        return $this->hasMany(Label::class);
+        return $this->server->hasMany(Label::class);
     }
 
     public function labels()

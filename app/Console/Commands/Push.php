@@ -36,11 +36,39 @@ class Push extends Command
 
     public function handle()
     {
-        foreach (Mirror::onlyClass([Project::class, Milestone::class])->get() as $mirror) {
-            // helpdesk.101m.ru -> git.101m.ru
-            foreach ($mirror->right->issues as $issue) {
-                $mirror->left->server->connect($mirror->user)->pushIssue($issue, $mirror->left);
+        $syncingMap = $this->createSyncingMap();
+
+        foreach ($syncingMap as $syncingItem) {
+            foreach ($syncingItem['issues'] as $issue) {
+                $connection = $syncingItem['project']->server->connect($issue->author);
+                try {
+                    $connection->pushIssue($issue, $syncingItem['project']);
+                } catch (\Throwable $th) {
+                    $this->error($th->getMessage());
+                }
             }
         }
+    }
+
+    /**
+     * Return map of connections, projects and issues
+     *
+     * @return array
+     */
+    protected function createSyncingMap(): array
+    {
+        $syncingMap = [];
+        $mirrors = Mirror::onlyClass([Project::class, Milestone::class])->get();
+        foreach ($mirrors as $mirror) {
+            $syncingMap[] = [
+                'project' => $mirror->left,
+                'issues' => $mirror->right->issues
+            ];
+            $syncingMap[] = [
+                'project' => $mirror->right,
+                'issues' => $mirror->left->issues
+            ];
+        }
+        return $syncingMap;
     }
 }

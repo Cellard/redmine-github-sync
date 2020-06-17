@@ -115632,19 +115632,19 @@ var routes = [{
   path: '/servers',
   name: 'servers.index',
   component: function component() {
-    return __webpack_require__.e(/*! import() */ 0).then(__webpack_require__.bind(null, /*! ./components/Servers */ "./resources/js/components/Servers.vue"));
+    return __webpack_require__.e(/*! import() */ 1).then(__webpack_require__.bind(null, /*! ./components/Servers */ "./resources/js/components/Servers.vue"));
   }
 }, {
   path: '/servers/create',
   name: 'servers.create',
   component: function component() {
-    return __webpack_require__.e(/*! import() */ 1).then(__webpack_require__.bind(null, /*! ./components/Server */ "./resources/js/components/Server.vue"));
+    return __webpack_require__.e(/*! import() */ 0).then(__webpack_require__.bind(null, /*! ./components/Server */ "./resources/js/components/Server.vue"));
   }
 }, {
   path: '/servers/:id',
   name: 'servers.edit',
   component: function component() {
-    return __webpack_require__.e(/*! import() */ 1).then(__webpack_require__.bind(null, /*! ./components/Server */ "./resources/js/components/Server.vue"));
+    return __webpack_require__.e(/*! import() */ 0).then(__webpack_require__.bind(null, /*! ./components/Server */ "./resources/js/components/Server.vue"));
   }
 }];
 var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
@@ -115674,8 +115674,8 @@ var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! /Users/pm/www/redmine-sync/resources/js/app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! /Users/pm/www/redmine-sync/resources/sass/app.scss */"./resources/sass/app.scss");
+__webpack_require__(/*! /Users/kirillosadcij/Projects/redmine-sync/resources/js/app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! /Users/kirillosadcij/Projects/redmine-sync/resources/sass/app.scss */"./resources/sass/app.scss");
 
 
 /***/ })

@@ -49,63 +49,62 @@ class Sync extends Command
             foreach ($mirror->projects() as $project) {
 
                 $issues = $project->server->connect($mirror->user)->getIssues($project->contract());
-                foreach ($issues as $remote) {
+                foreach ($issues as $remoteIssue) {
 
 
-                    $author = $remote->author->toLocal($project->server);
+                    $author = $remoteIssue->author->toLocal($project->server);
 
-                    /** @var Issue $issue */
                     if (SyncedIssue::where([
-                        'ext_id' => $remote->id,
+                        'ext_id' => $remoteIssue->id,
                         'project_id' => $project->id
                     ])->first()) {
                         continue;
                     }
                     
+                    /** @var Issue $issue */
                     $issue = Issue::query()->updateOrCreate([
-                        'ext_id' => $remote->id,
+                        'ext_id' => $remoteIssue->id,
                         'project_id' => $project->id
                     ], [
                         'author_id' => $author->id,
-                        'subject' => $remote->subject,
-                        'description' => $remote->description,
-                        'created_at' => $remote->created_at
+                        'subject' => $remoteIssue->subject,
+                        'description' => $remoteIssue->description,
+                        'created_at' => $remoteIssue->created_at
                     ]);
 
-                    if ($remote->milestone) {
-                        $issue->milestone()->associate($remote->milestone->toLocal($project));
+                    if ($remoteIssue->milestone) {
+                        $issue->milestone()->associate($remoteIssue->milestone->toLocal($project));
                     }
 
-                    if ($remote->assignee) {
-                        $issue->assignee()->associate($remote->assignee->toLocal($project->server));
+                    if ($remoteIssue->assignee) {
+                        $issue->assignee()->associate($remoteIssue->assignee->toLocal($project->server));
                     }
 
-                    if ($remote instanceof HasDates) {
-                        $issue->started_at = $remote->started_at;
-                        $issue->finished_at = $remote->finished_at;
+                    if ($remoteIssue instanceof HasDates) {
+                        $issue->started_at = $remoteIssue->started_at;
+                        $issue->finished_at = $remoteIssue->finished_at;
                     }
 
                     $issue->enumerations()->detach();
 
-                    // Github, Gogs
-                    if ($remote instanceof HasLabels) {
-                        $remote->labels->map(function(LabelContract $label) use($issue, $project) {
-                            $issue->enumerations()->attach($label->toLocal($project));
-                        });
+                    switch (true) {
+                        case $remoteIssue instanceof HasLabels:
+                            $remoteIssue->labels->map(function(LabelContract $label) use($issue, $project) {
+                                $issue->enumerations()->attach($label->toLocal($project->server));
+                            });
+                            break;
+                        case $remoteIssue instanceof HasStatus:
+                            $issue->enumerations()->attach($remoteIssue->status->toLocal($project->server));
+                        case $remoteIssue instanceof HasTracker:
+                            $issue->enumerations()->attach($remoteIssue->tracker->toLocal($project->server));
+                        case $remoteIssue instanceof HasPriority:
+                            $issue->enumerations()->attach($remoteIssue->priority->toLocal($project->server));
+
+                        default:
+                            break;
                     }
 
-                    // Redmine
-                    if ($remote instanceof HasStatus) {
-                        $issue->enumerations()->attach($remote->status->toLocal($project));
-                    }
-                    if ($remote instanceof HasTracker) {
-                        $issue->enumerations()->attach($remote->tracker->toLocal($project));
-                    }
-                    if ($remote instanceof HasPriority) {
-                        $issue->enumerations()->attach($remote->priority->toLocal($project));
-                    }
-
-                    $issue->updated_at = $remote->updated_at;
+                    $issue->updated_at = $remoteIssue->updated_at;
 
                     $issue->save();
 

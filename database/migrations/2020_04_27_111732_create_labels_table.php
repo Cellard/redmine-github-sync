@@ -15,7 +15,7 @@ class CreateLabelsTable extends Migration
     {
         Schema::create('labels', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('project_id');
+            $table->string('server_id');
             $table->unsignedBigInteger('ext_id')->comment('external id');
             $table->string('type')->nullable();
             $table->string('name');
@@ -24,9 +24,9 @@ class CreateLabelsTable extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('project_id')->references('id')->on('projects');
+            $table->foreign('server_id')->references('id')->on('servers');
 
-            $table->unique(['project_id', 'ext_id', 'type']);
+            $table->unique(['server_id', 'ext_id', 'type']);
         });
     }
 

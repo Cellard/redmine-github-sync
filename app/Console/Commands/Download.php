@@ -136,7 +136,7 @@ class Download extends Command
 
         /** @var \App\IssueTracker\Abstracts\Label $label */
         foreach ($labels as $label) {
-            $sync[] = $label->toLocal($project, $type)->getKey();
+            $sync[] = $label->toLocal($project->server, $type)->getKey();
         }
 
         $delete = $project->enumerations()->whereNotIn('id', $sync);

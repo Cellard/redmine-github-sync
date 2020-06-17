@@ -5,8 +5,7 @@ namespace App\IssueTracker\Contracts;
 
 
 use App\Label;
-use App\Project;
-use Jenssegers\Model\Model;
+use App\Server;
 
 /**
  * Interface LabelContract
@@ -24,8 +23,8 @@ interface LabelContract
 
     /**
      * Создает локальную копию записи
-     * @param Project $project
+     * @param Server $server
      * @return Label
      */
-    public function toLocal(Project $project);
+    public function toLocal(Server $server);
 }

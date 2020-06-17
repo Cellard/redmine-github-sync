@@ -18,6 +18,7 @@ class GogsIssue extends Issue implements HasLabels
 {
     public static function createFromRemote(array $attributes, ProjectContract $project)
     {
+        $attributes['id'] = $attributes['number'];
         $attributes['subject'] = $attributes['title'];
         $attributes['description'] = $attributes['body'];
         $attributes['open'] = $attributes['state'] == 'open' ? true : false;

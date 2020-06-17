@@ -179,4 +179,71 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
 
         return collect($issues);
     }
+
+    /**
+     * Create or update issue in gogs
+     *
+     * @param \App\Issue $issue
+     * @param \App\Project $project
+     * @return array
+     */
+    public function pushIssue(\App\Issue $issue, \App\Project $project)
+    {
+        $syncedIssue = $project->syncedIssues()->where('issue_id', $issue->id)->first();
+        $assigneId = $project->server->credentials()->where('user_id', $issue->assignee->id)->first()['ext_id'];
+        $data = [
+            'subject' => $issue->subject,
+            'description' => $issue->description,
+            'project_id' => $project->ext_id,
+            'assigned_to_id' => $assigneId,
+            'author_id' => $this->getAccount()->id
+        ];
+
+        if ($syncedIssue) {
+            $result = $this->updateIssue($data);
+            $syncedIssue->updated_at = $result['updated_at'];
+            $syncedIssue->save();
+        } else {
+            $result = $this->createIssue($data);
+            SyncedIssue::create([
+                'issue_id' => $issue->id,
+                'project_id' => $project->id,
+                'ext_id' => $result['id'],
+                'updated_at' => $result['updated_at']
+            ]);
+        }
+        return $result;
+    }
+
+    /**
+     * Create issue in gogs
+     *
+     * @param array $issue
+     * @param ProjectContract $project
+     * @return array
+     */
+    protected function createIssue(array $issue): array
+    {
+        $response = $this->client()->issue->create($issue);
+        $response = json_decode($response->getBody(), true);
+        return $response;
+    }
+
+    /**
+     * Update issue in gogs
+     *
+     * @param array $issue
+     * @param ProjectContract $project
+     * @param SyncedIssue $syncedIssue
+     * @return array
+     */
+    protected function updateIssue(array $issue): array
+    {
+        $response = $this->client->patch("/api/v1/repos/", [
+            'json' => $issue
+        ]);
+        $response = json_decode($response->getBody(), true);
+
+        return $response;
+    }
 }

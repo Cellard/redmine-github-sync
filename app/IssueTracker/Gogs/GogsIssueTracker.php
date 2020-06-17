@@ -14,14 +14,30 @@ use App\IssueTracker\Contracts\ProjectContract;
 use App\IssueTracker\Contracts\UserContract;
 use App\IssueTracker\Contracts\WithLabels;
 use App\SyncedIssue;
-use bconnect\GogsClient\GogsService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Collection;
 
 class GogsIssueTracker extends IssueTracker implements WithLabels
 {
+    /**
+     * Guzzle Http Client
+     *
+     * @var GuzzleHttp\Client
+     */
+    protected $client;
 
+    public function __construct($baseUri, $apiKey)
+    {
+        parent::__construct($baseUri, $apiKey);
+        $this->client = $this->client();
+    }
+
+    /**
+     * Return new Guzzle Http Client
+     *
+     * @return GuzzleHttp\Client
+     */
     protected function client()
     {
         return new Client([
@@ -39,7 +55,7 @@ class GogsIssueTracker extends IssueTracker implements WithLabels
      */
     protected function requestProjects($page = 1)
     {
-        $response = $this->client()->get('/api/v1/user/repos', [
+        $response = $this->client->get('/api/v1/user/repos', [
             'query' => [
                 'page' => $page
             ]
@@ -75,7 +91,7 @@ class GogsIssueTracker extends IssueTracker implements WithLabels
      */
     public function getMilestones(ProjectContract $project)
     {
-        $response = $this->client()->get("/api/v1/repos/{$project->slug}/milestones");
+        $response = $this->client->get("/api/v1/repos/{$project->slug}/milestones");
         $json = json_decode($response->getBody(), true);
 
         $milestones = [];
@@ -95,7 +111,7 @@ class GogsIssueTracker extends IssueTracker implements WithLabels
      */
     public function getLabelListing(ProjectContract $project)
     {
-        $response = $this->client()->get("/api/v1/repos/{$project->slug}/labels");
+        $response = $this->client->get("/api/v1/repos/{$project->slug}/labels");
         $json = json_decode($response->getBody(), true);
 
         $labels = [];
@@ -114,7 +130,7 @@ class GogsIssueTracker extends IssueTracker implements WithLabels
      */
     public function getIssues(ProjectContract $project)
     {
-        $response = $this->client()->get("/api/v1/repos/{$project->slug}/issues");
+        $response = $this->client->get("/api/v1/repos/{$project->slug}/issues");
         $json = json_decode($response->getBody(), true);
 
         $issues = [];
@@ -135,7 +151,7 @@ class GogsIssueTracker extends IssueTracker implements WithLabels
     public function getAccount()
     {
         try {
-            $response = $this->client()->get("/api/v1/user");
+            $response = $this->client->get("/api/v1/user");
             $json = json_decode($response->getBody(), true);
             return GogsUser::createFromRemote($json);
         } catch (\Exception $e) {
@@ -143,46 +159,73 @@ class GogsIssueTracker extends IssueTracker implements WithLabels
         }
     }
 
+    /**
+     * Create or update issue in gogs
+     *
+     * @param \App\Issue $issue
+     * @param \App\Project $project
+     * @return array
+     */
     public function pushIssue(\App\Issue $issue, \App\Project $project)
     {
+        return;
         $syncedIssue = $project->syncedIssues()->where('issue_id', $issue->id)->first();
         $gogsProject = GogsProject::createFromLocal($project);
+        $assigneUsername = $project->server->credentials()->where('user_id', $issue->assignee->id)->first()['username'];
+        $data = [
+            'title' => $issue->subject,
+            'body' => $issue->description,
+            'assignee' => $assigneUsername,
+            'closed' => !$issue->open
+        ];
+
         if ($syncedIssue) {
-            $this->updateIssue($issue, $gogsProject, $syncedIssue);
+            $result = $this->updateIssue($data, $gogsProject, $syncedIssue);
+            $syncedIssue->updated_at = $result['updated_at'];
+            $syncedIssue->save();
         } else {
-            $this->createIssue($issue, $gogsProject);
+            $result = $this->createIssue($data, $gogsProject);
+            SyncedIssue::create([
+                'issue_id' => $issue->id,
+                'project_id' => $project->id,
+                'ext_id' => $result['id'],
+                'updated_at' => $result['updated_at']
+            ]);
         }
+        return $result;
     }
 
-    protected function createIssue(\App\Issue $issue, ProjectContract $project): void
+    /**
+     * Create issue in gogs
+     *
+     * @param array $issue
+     * @param ProjectContract $project
+     * @return array
+     */
+    protected function createIssue(array $issue, ProjectContract $project): array
     {
-        $response = json_decode($this->client()->post("/api/v1/repos/{$project->slug}/issues", [
-            'json' => [
-                'title' => $issue->subject,
-                'body' => $issue->description,
-                'closed' => !$issue->open
-            ]
-        ])->getBody(), true);
-
-        SyncedIssue::create([
-            'issue_id' => $issue->id,
-            'project_id' => $project->id,
-            'ext_id' => $response['id'],
-            'updated_at' => $response['updated_at']
+        $response = $this->client->post("/api/v1/repos/{$project->slug}/issues", [
+            'json' => $issue
         ]);
+        $response = json_decode($response->getBody(), true);
+        return $response;
     }
 
-    protected function updateIssue(\App\Issue $issue, ProjectContract $project, SyncedIssue $syncedIssue): void
+    /**
+     * Update issue in gogs
+     *
+     * @param array $issue
+     * @param ProjectContract $project
+     * @param SyncedIssue $syncedIssue
+     * @return array
+     */
+    protected function updateIssue(array $issue, ProjectContract $project, SyncedIssue $syncedIssue): array
     {
-        $response = json_decode($this->client()->patch("/api/v1/repos/{$project->slug}/issues/{$syncedIssue->ext_id}", [
-            'json' => [
-                'title' => $issue->subject,
-                'body' => $issue->description,
-                'closed' => !$issue->open
-            ]
-        ])->getBody(), true);
+        $response = $this->client->patch("/api/v1/repos/{$project->slug}/issues/{$syncedIssue->ext_id}", [
+            'json' => $issue
+        ]);
+        $response = json_decode($response->getBody(), true);
 
-        $syncedIssue->updated_at = $response['updated_at'];
-        $syncedIssue->save();
+        return $response;
     }
 }

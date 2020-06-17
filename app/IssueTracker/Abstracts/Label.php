@@ -6,7 +6,7 @@ namespace App\IssueTracker\Abstracts;
 
 use App\IssueTracker\Contracts\LabelContract;
 use App\IssueTracker\Contracts\ProjectContract;
-use App\Project;
+use App\Server;
 use Jenssegers\Model\Model;
 
 class Label extends Model implements LabelContract
@@ -38,11 +38,11 @@ class Label extends Model implements LabelContract
 
     /**
      * Создает локальную копию записи
-     * @param Project $project
+     * @param Server $server
      * @param null|string $type
      * @return \App\Label
      */
-    public function toLocal(Project $project, $type = null)
+    public function toLocal(Server $server, $type = null)
     {
         // Тут полиморфизм
         // У GitHub лейблы не типизированы, используй как хочешь, но зато они в одном пространстве идентификаторов.
@@ -50,7 +50,7 @@ class Label extends Model implements LabelContract
         // А у Redmine есть три типа признаков, и каждый в своем пространстве идентификаторов.
         // Их уникальный ключ включает их тип, чтобы отличать одно от другого.
 
-        $uniqueKey = ['project_id' => $project->id, 'ext_id' => $this->id];
+        $uniqueKey = ['server_id' => $server->id, 'ext_id' => $this->id];
         if ($type) {
             $uniqueKey['type'] = $type;
         }

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read integer $id
  * @property string|null $type
  * @property string $name
- * @property-read  Project $project
+ * @property-read  Server $server
  * @property integer $ext_id
  * @property array $more
  */
@@ -24,13 +24,13 @@ class Label extends Model
     const STATUS = 'status';
     const PRIORITY = 'priority';
 
-    protected $fillable = ['project_id', 'ext_id', 'type', 'name'];
+    protected $fillable = ['server_id', 'ext_id', 'type', 'name'];
     protected $casts = [
         'more' => 'array'
     ];
 
-    public function project()
+    public function server()
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Server::class);
     }
 }
