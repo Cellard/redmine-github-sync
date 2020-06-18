@@ -29,7 +29,7 @@ class RedmineIssue extends Issue implements HasPriority, HasTracker, HasStatus, 
         $attributes['tracker'] = Label::createFromRemote($attributes['tracker'], $project);
         $attributes['status'] = Label::createFromRemote($attributes['status'], $project);
         $attributes['priority'] = Label::createFromRemote($attributes['priority'], $project);
-        $attributes['milestone'] = RedmineMilestone::createFromRemote($attributes['fixed_version'], $project);
+        $attributes['milestone'] = isset($attributes['fixed_version']) ? RedmineMilestone::createFromRemote($attributes['fixed_version'], $project) : null;
         $attributes['url'] = $project->base_uri . '/issues/' . $attributes['id'];
 
         return new static($attributes, $project);

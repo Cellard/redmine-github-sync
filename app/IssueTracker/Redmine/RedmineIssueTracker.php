@@ -14,10 +14,8 @@ use App\IssueTracker\Contracts\UserContract;
 use App\IssueTracker\Contracts\WithPriority;
 use App\IssueTracker\Contracts\WithStatus;
 use App\IssueTracker\Contracts\WithTracker;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\RequestException;
-use Illuminate\Http\Client\Request;
+use App\SyncedIssue;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatus, WithPriority
@@ -181,7 +179,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
     }
 
     /**
-     * Create or update issue in gogs
+     * Create or update issue in redmine
      *
      * @param \App\Issue $issue
      * @param \App\Project $project
@@ -191,7 +189,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
     {
         $syncedIssue = $project->syncedIssues()->where('issue_id', $issue->id)->first();
         $assigneId = $project->server->credentials()->where('user_id', $issue->assignee->id)->first()['ext_id'];
-        $data = [
+        $attributes = [
             'subject' => $issue->subject,
             'description' => $issue->description,
             'project_id' => $project->ext_id,
@@ -200,50 +198,43 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
         ];
 
         if ($syncedIssue) {
-            $result = $this->updateIssue($data);
-            $syncedIssue->updated_at = $result['updated_at'];
+            $result = $this->updateIssue($syncedIssue->ext_id, $attributes);
+            $syncedIssue->updated_at = Carbon::now();
             $syncedIssue->save();
         } else {
-            $result = $this->createIssue($data);
+            $result = $this->createIssue($attributes);
             SyncedIssue::create([
                 'issue_id' => $issue->id,
                 'project_id' => $project->id,
                 'ext_id' => $result['id'],
-                'updated_at' => $result['updated_at']
+                'updated_at' => $result['updated_on']
             ]);
         }
         return $result;
     }
 
     /**
-     * Create issue in gogs
+     * Create issue in redmine
      *
-     * @param array $issue
-     * @param ProjectContract $project
+     * @param array $attributes
      * @return array
      */
-    protected function createIssue(array $issue): array
+    protected function createIssue(array $attributes): array
     {
-        $response = $this->client()->issue->create($issue);
-        $response = json_decode($response->getBody(), true);
-        return $response;
+        $response = $this->client()->issue->create($attributes);
+        return (array)$response;
     }
 
     /**
-     * Update issue in gogs
+     * Update issue in redmine
      *
-     * @param array $issue
-     * @param ProjectContract $project
-     * @param SyncedIssue $syncedIssue
+     * @param integer $id
+     * @param array $attributes
      * @return array
      */
-    protected function updateIssue(array $issue): array
+    protected function updateIssue(int $id, array $attributes): array
     {
-        $response = $this->client->patch("/api/v1/repos/", [
-            'json' => $issue
-        ]);
-        $response = json_decode($response->getBody(), true);
-
-        return $response;
+        $response = $this->client()->issue->update($id, $attributes);
+        return (array)$response;
     }
 }
