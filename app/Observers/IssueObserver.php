@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Issue;
+use App\SyncedIssue;
 
 class IssueObserver
 {
@@ -14,7 +15,13 @@ class IssueObserver
      */
     public function created(Issue $issue)
     {
-        //
+        SyncedIssue::create([
+            'issue_id' => $issue->id,
+            'project_id' => $issue->project->id,
+            'ext_id' => $issue->ext_id,
+            'updated_at' => $issue->updated_at,
+            'created_at' => $issue->created_at
+        ]);
     }
 
     public function saving(Issue $issue)

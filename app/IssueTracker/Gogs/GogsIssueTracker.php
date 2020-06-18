@@ -168,7 +168,6 @@ class GogsIssueTracker extends IssueTracker implements WithLabels
      */
     public function pushIssue(\App\Issue $issue, \App\Project $project)
     {
-        return;
         $syncedIssue = $project->syncedIssues()->where('issue_id', $issue->id)->first();
         $gogsProject = GogsProject::createFromLocal($project);
         $assigneUsername = $project->server->credentials()->where('user_id', $issue->assignee->id)->first()['username'];
@@ -188,7 +187,7 @@ class GogsIssueTracker extends IssueTracker implements WithLabels
             SyncedIssue::create([
                 'issue_id' => $issue->id,
                 'project_id' => $project->id,
-                'ext_id' => $result['id'],
+                'ext_id' => $result['number'],
                 'updated_at' => $result['updated_at']
             ]);
         }

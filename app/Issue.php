@@ -84,4 +84,9 @@ class Issue extends Model
     {
         return $this->enumerations()->where('type', 'priority')->first();
     }
+
+    public function syncedIssues()
+    {
+        return $this->hasMany(SyncedIssue::class, 'issue_id', 'id');
+    }
 }

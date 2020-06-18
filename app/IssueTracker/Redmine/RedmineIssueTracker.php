@@ -199,7 +199,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
 
         if ($syncedIssue) {
             $result = $this->updateIssue($syncedIssue->ext_id, $attributes);
-            $syncedIssue->updated_at = Carbon::now();
+            $syncedIssue->updated_at = $result['updated_on'];
             $syncedIssue->save();
         } else {
             $result = $this->createIssue($attributes);
@@ -234,7 +234,8 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
      */
     protected function updateIssue(int $id, array $attributes): array
     {
-        $response = $this->client()->issue->update($id, $attributes);
+        $this->client()->issue->update($id, $attributes);
+        $response = $this->client()->issue->show($id)['issue'];
         return (array)$response;
     }
 }

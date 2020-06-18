@@ -14,6 +14,7 @@ use App\Mirror;
 use App\Project;
 use App\SyncedIssue;
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 class Sync extends Command
@@ -50,27 +51,34 @@ class Sync extends Command
 
                 $issues = $project->server->connect($mirror->user)->getIssues($project->contract());
                 foreach ($issues as $remoteIssue) {
-
-
                     $author = $remoteIssue->author->toLocal($project->server);
-
-                    if (SyncedIssue::where([
+                    $issue = Issue::where([
                         'ext_id' => $remoteIssue->id,
                         'project_id' => $project->id
-                    ])->first()) {
+                    ])->orWhereHas('syncedIssues', function ($query) use ($remoteIssue, $project) {
+                        $query->where([
+                            'ext_id' => $remoteIssue->id,
+                            'project_id' => $project->id
+                        ]);
+                    })->first();
+                    
+                    if ($issue && $issue->updated_at->lessThan(Carbon::parse($remoteIssue->updated_at))) {
+                        $issue->update([
+                            'author_id' => $author->id,
+                            'subject' => $remoteIssue->subject,
+                            'description' => $remoteIssue->description,
+                        ]);
+                    } else if (!$issue) {
+                        $issue = Issue::create([
+                            'ext_id' => $remoteIssue->id,
+                            'project_id' => $project->id,
+                            'author_id' => $author->id,
+                            'subject' => $remoteIssue->subject,
+                            'description' => $remoteIssue->description
+                        ]);
+                    } else {
                         continue;
                     }
-                    
-                    /** @var Issue $issue */
-                    $issue = Issue::query()->updateOrCreate([
-                        'ext_id' => $remoteIssue->id,
-                        'project_id' => $project->id
-                    ], [
-                        'author_id' => $author->id,
-                        'subject' => $remoteIssue->subject,
-                        'description' => $remoteIssue->description,
-                        'created_at' => $remoteIssue->created_at
-                    ]);
 
                     if ($remoteIssue->milestone) {
                         $issue->milestone()->associate($remoteIssue->milestone->toLocal($project));
@@ -94,21 +102,16 @@ class Sync extends Command
                             });
                             break;
                         case $remoteIssue instanceof HasStatus:
-                            $issue->enumerations()->attach($remoteIssue->status->toLocal($project->server));
+                            $issue->enumerations()->attach($remoteIssue->status->toLocal($project->server, 'status'));
                         case $remoteIssue instanceof HasTracker:
-                            $issue->enumerations()->attach($remoteIssue->tracker->toLocal($project->server));
+                            $issue->enumerations()->attach($remoteIssue->tracker->toLocal($project->server, 'tracker'));
                         case $remoteIssue instanceof HasPriority:
-                            $issue->enumerations()->attach($remoteIssue->priority->toLocal($project->server));
+                            $issue->enumerations()->attach($remoteIssue->priority->toLocal($project->server, 'priority'));
 
                         default:
                             break;
                     }
-
-                    $issue->updated_at = $remoteIssue->updated_at;
-
                     $issue->save();
-
-                    //dd($issue->toArray());
                 }
             }
         }

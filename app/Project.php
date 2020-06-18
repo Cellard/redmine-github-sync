@@ -53,6 +53,13 @@ class Project extends Model
         return $this->hasMany(Issue::class);
     }
 
+    public function issuesToSync()
+    {
+        return $this->issues()->whereHas('syncedIssues', function ($query) {
+            $query->whereColumn('synced_issues.updated_at', '<', 'issues.updated_at');
+        });
+    }
+
     public function syncedIssues()
     {
         return $this->hasMany(SyncedIssue::class);

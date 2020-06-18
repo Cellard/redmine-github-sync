@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\IssueTracker\Gogs\GogsProject;
 use App\Milestone;
 use App\Mirror;
 use App\Project;
@@ -60,13 +59,14 @@ class Push extends Command
         $syncingMap = [];
         $mirrors = Mirror::onlyClass([Project::class, Milestone::class])->get();
         foreach ($mirrors as $mirror) {
+            $issues = $mirror->right->issuesToSync->merge($mirror->left->issuesToSync);
             $syncingMap[] = [
                 'project' => $mirror->left,
-                'issues' => $mirror->right->issues
+                'issues' => $issues
             ];
             $syncingMap[] = [
                 'project' => $mirror->right,
-                'issues' => $mirror->left->issues
+                'issues' => $issues
             ];
         }
         return $syncingMap;
