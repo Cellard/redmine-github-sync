@@ -14,6 +14,7 @@ class SyncedIssueObserver
      */
     public function saved(SyncedIssue $syncedIssue)
     {
+        return;
         $parentIssue = $syncedIssue->parentIssue;
         if ($syncedIssue->updated_at->greaterThan($parentIssue->updated_at)) {
             $parentIssue->updated_at = $syncedIssue->updated_at;

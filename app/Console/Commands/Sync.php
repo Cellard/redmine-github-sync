@@ -48,9 +48,12 @@ class Sync extends Command
         /** @var Mirror $mirror */
         foreach (Mirror::onlyClass([Project::class, Milestone::class])->get() as $mirror) {
             foreach ($mirror->projects() as $project) {
-
                 $issues = $project->server->connect($mirror->user)->getIssues($project->contract());
                 foreach ($issues as $remoteIssue) {
+                    if ($remoteIssue->id == 33713)
+                    {
+                        $test = 'asd';
+                    }
                     $author = $remoteIssue->author->toLocal($project->server);
                     $issue = Issue::where([
                         'ext_id' => $remoteIssue->id,

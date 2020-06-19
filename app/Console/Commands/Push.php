@@ -50,7 +50,7 @@ class Push extends Command
     }
 
     /**
-     * Return map of connections, projects and issues
+     * Return map of projects and issues to push
      *
      * @return array
      */
@@ -59,14 +59,13 @@ class Push extends Command
         $syncingMap = [];
         $mirrors = Mirror::onlyClass([Project::class, Milestone::class])->get();
         foreach ($mirrors as $mirror) {
-            $issues = $mirror->right->issuesToSync->merge($mirror->left->issuesToSync);
             $syncingMap[] = [
                 'project' => $mirror->left,
-                'issues' => $issues
+                'issues' => $mirror->left->issuesToPush($mirror->right)->get()
             ];
             $syncingMap[] = [
                 'project' => $mirror->right,
-                'issues' => $issues
+                'issues' => $mirror->right->issuesToPush($mirror->left)->get()
             ];
         }
         return $syncingMap;

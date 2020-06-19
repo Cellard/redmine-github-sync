@@ -7,6 +7,7 @@ use App\IssueTracker\Gogs\GogsProject;
 use App\IssueTracker\Redmine\RedmineProject;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -53,11 +54,21 @@ class Project extends Model
         return $this->hasMany(Issue::class);
     }
 
-    public function issuesToSync()
+    /**
+     * Return HasMany relation of issues to push from mirror project
+     *
+     * @param Project $project
+     * @return Builder
+     */
+    public function issuesToPush(Project $project): HasMany
     {
-        return $this->issues()->whereHas('syncedIssues', function ($query) {
+        $new = $this->issues()->whereDoesntHave('syncedIssues', function ($query) use ($project) {
+            $query->where('project_id', $project->id);
+        }); 
+        $exists = $project->issues()->whereHas('syncedIssues', function ($query) {
             $query->whereColumn('synced_issues.updated_at', '<', 'issues.updated_at');
         });
+        return $exists->unionAll($new);
     }
 
     public function syncedIssues()

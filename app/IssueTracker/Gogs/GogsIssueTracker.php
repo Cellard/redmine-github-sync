@@ -180,8 +180,6 @@ class GogsIssueTracker extends IssueTracker implements WithLabels
 
         if ($syncedIssue) {
             $result = $this->updateIssue($data, $gogsProject, $syncedIssue);
-            $syncedIssue->updated_at = $result['updated_at'];
-            $syncedIssue->save();
         } else {
             $result = $this->createIssue($data, $gogsProject);
             SyncedIssue::create([
@@ -191,6 +189,9 @@ class GogsIssueTracker extends IssueTracker implements WithLabels
                 'updated_at' => $result['updated_at']
             ]);
         }
+        $issue->updated_at = $result['updated_on'];
+        $issue->save();
+        $issue->syncedIssues()->update(['updated_at' => $issue->updated_at]);
         return $result;
     }
 
