@@ -10,7 +10,7 @@
     </el-aside>
 
     <el-container>
-      <el-main>
+      <el-main v-loading="loading">
         <router-view></router-view>
       </el-main>
       <el-footer>&copy; 101 media, {{new Date().getFullYear()}}</el-footer>
@@ -19,11 +19,16 @@
 </template>
 
 <script>
+  import { mapGetters, mapActions } from 'vuex';
+  import { store } from '../store'
   export default {
     data() {
       return {
-        openMenu: window.openMenu,
+        openMenu: window.openMenu
       }
+    },
+    computed: {
+      ...mapGetters(['loading']),
     }
   }
 </script>

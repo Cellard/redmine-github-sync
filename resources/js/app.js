@@ -14,6 +14,7 @@ import AppRoot from './components/AppRoot';
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import locale from 'element-ui/lib/locale/lang/ru-RU';
+import { store } from './store';
 
 Vue.use(ElementUI, {locale});
 
@@ -46,5 +47,6 @@ Vue.component('app-root', AppRoot);
  */
 const app = new Vue({
     el: '#app',
-    router
+    router,
+    store
 });

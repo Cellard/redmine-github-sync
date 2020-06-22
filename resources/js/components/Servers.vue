@@ -35,6 +35,8 @@
 </template>
 
 <script>
+  import { store } from '../store'
+
   export default {
     name: 'Servers',
     data() {
@@ -53,7 +55,8 @@
         this.$http.get('/api/servers/')
           .then(response => {
             this.servers = response.data.data;
-            console.log(response.data.data);
+            store.dispatch('finishLoading');
+            console.log(store);
             
           });
       }

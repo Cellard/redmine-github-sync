@@ -27,6 +27,7 @@
 </template>
 
 <script>
+  import { store } from '../store'
   export default {
     name: "Server",
     data() {
@@ -66,6 +67,7 @@
         this.$http.get('/api/drivers')
           .then(response => {
             this.drivers = response.data.data;
+            setTimeout(function(){store.dispatch('finishLoading')}, 2000);
           });
       }
     }
