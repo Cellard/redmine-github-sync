@@ -6,3 +6,39 @@
 
 // Bootstrap
 @import '~bootstrap/scss/bootstrap';
+
+html,body {
+  height:100%;
+
+  #app {
+    height: 100%;
+  
+    main {
+      height: calc(100% - 55px);
+      background-color: #fff;
+
+      #container {
+        height: 100%;
+
+        el-menu {
+          a {
+            color: #303133;
+            &:hover {
+              text-decoration: none;
+            }
+          }
+        }
+
+        .el-breadcrumb {
+          margin-bottom: 20px;
+        }
+      }
+    }
+
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+}

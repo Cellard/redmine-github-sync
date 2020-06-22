@@ -43,7 +43,7 @@
 /******/
 /******/ 	// script path function
 /******/ 	function jsonpScriptSrc(chunkId) {
-/******/ 		return __webpack_require__.p + "" + ({}[chunkId]||chunkId) + ".js"
+/******/ 		return __webpack_require__.p + "js/chunks/" + ({}[chunkId]||chunkId) + ".js"
 /******/ 	}
 /******/
 /******/ 	// The require function
@@ -3651,6 +3651,14 @@ function mergeFn (a, b) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -100315,22 +100323,47 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c(
-    "div",
-    { attrs: { id: "router" } },
+    "el-container",
+    { attrs: { id: "container" } },
     [
-      _c("ul", [
-        _c(
-          "li",
-          [
-            _c("router-link", { attrs: { to: { name: "servers.index" } } }, [
-              _vm._v("Servers")
-            ])
-          ],
-          1
-        )
-      ]),
+      _c(
+        "el-aside",
+        {
+          staticStyle: { "background-color": "rgb(238, 241, 246)" },
+          attrs: { width: "200px" }
+        },
+        [
+          _c(
+            "el-menu",
+            { attrs: { router: true } },
+            [
+              _c(
+                "el-menu-item",
+                { attrs: { index: "1", route: { name: "servers.index" } } },
+                [
+                  _c("i", { staticClass: "el-icon-menu" }),
+                  _vm._v(" "),
+                  _c("span", [_vm._v("Servers")])
+                ]
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
       _vm._v(" "),
-      _c("router-view")
+      _c(
+        "el-container",
+        [
+          _c("el-main", [_c("router-view")], 1),
+          _vm._v(" "),
+          _c("el-footer", [
+            _vm._v("© 101 media, " + _vm._s(new Date().getFullYear()))
+          ])
+        ],
+        1
+      )
     ],
     1
   )
@@ -115527,6 +115560,7 @@ try {
 
 window.axios = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+window.axios.defaults.withCredentials = true;
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
  * for events that are broadcast by Laravel. Echo and event broadcasting
@@ -115649,7 +115683,6 @@ var routes = [{
 }];
 var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
   mode: 'history',
-  base: 'home',
   routes: routes
 });
 /* harmony default export */ __webpack_exports__["default"] = (router);

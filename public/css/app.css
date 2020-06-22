@@ -10882,3 +10882,46 @@ a.text-dark:focus {
   }
 }
 
+html,
+body {
+  height: 100%;
+}
+
+html #app,
+body #app {
+  height: 100%;
+}
+
+html #app main,
+body #app main {
+  height: calc(100% - 55px);
+  background-color: #fff;
+}
+
+html #app main #container,
+body #app main #container {
+  height: 100%;
+}
+
+html #app main #container el-menu a,
+body #app main #container el-menu a {
+  color: #303133;
+}
+
+html #app main #container el-menu a:hover,
+body #app main #container el-menu a:hover {
+  text-decoration: none;
+}
+
+html #app main #container .el-breadcrumb,
+body #app main #container .el-breadcrumb {
+  margin-bottom: 20px;
+}
+
+html #app footer,
+body #app footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
