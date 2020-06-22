@@ -3,6 +3,7 @@
 namespace App;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
@@ -88,5 +89,25 @@ class Issue extends Model
     public function syncedIssues()
     {
         return $this->hasMany(SyncedIssue::class, 'issue_id', 'id');
+    }
+
+    /**
+     * Return eloquient builder of issues linked to remote issues by 'ext_id' field
+     *
+     * @param integer $remoteIssueId
+     * @param integer $projectId
+     * @return Builder
+     */
+    public function queryByRemote(int $remoteIssueId, int $projectId): Builder
+    {
+        return $this->where([
+            'ext_id' => $remoteIssueId,
+            'project_id' => $projectId
+        ])->orWhereHas('syncedIssues', function ($query) use ($remoteIssueId, $projectId) {
+            $query->where([
+                'ext_id' => $remoteIssueId,
+                'project_id' => $projectId
+            ]);
+        });
     }
 }

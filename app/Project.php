@@ -65,10 +65,16 @@ class Project extends Model
         $new = $this->issues()->whereDoesntHave('syncedIssues', function ($query) use ($project) {
             $query->where('project_id', $project->id);
         }); 
-        $exists = $project->issues()->whereHas('syncedIssues', function ($query) {
+        $newMirror = $project->issues()->whereDoesntHave('syncedIssues', function ($query) {
+            $query->where('project_id', $this->id);
+        }); 
+        $exists = $this->issues()->whereHas('syncedIssues', function ($query) {
             $query->whereColumn('synced_issues.updated_at', '<', 'issues.updated_at');
         });
-        return $exists->unionAll($new);
+        $existsMirror = $project->issues()->whereHas('syncedIssues', function ($query) {
+            $query->whereColumn('synced_issues.updated_at', '<', 'issues.updated_at');
+        });
+        return $existsMirror->unionAll($exists)->unionAll($new)->unionAll($newMirror);
     }
 
     public function syncedIssues()

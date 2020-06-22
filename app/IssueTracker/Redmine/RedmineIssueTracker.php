@@ -20,6 +20,18 @@ use Illuminate\Support\Collection;
 
 class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatus, WithPriority
 {
+    /**
+     * Guzzle Http Client
+     *
+     * @var GuzzleHttp\Client
+     */
+    protected $client;
+
+    public function __construct($baseUri, $apiKey)
+    {
+        parent::__construct($baseUri, $apiKey);
+        $this->client = $this->client();
+    }
 
     /**
      * @return \Redmine\Client
@@ -39,7 +51,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
         $limit = 100;
         $offset = $this->getOffset($page, $limit);
 
-        $json = (array)$this->client()->project->all([
+        $json = (array)$this->client->project->all([
             'limit' => $limit,
             'offset' => $offset
         ]);
@@ -60,7 +72,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
      */
     public function getMilestones(ProjectContract $project)
     {
-        $json = (array)$this->client()->version->all($project->id);
+        $json = (array)$this->client->version->all($project->id);
 
         $milestones = [];
 
@@ -80,7 +92,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
      */
     public function getPriorityListing(ProjectContract $project)
     {
-        $json = (array)$this->client()->issue_priority->all();
+        $json = (array)$this->client->issue_priority->all();
 
         $issue_priorities = [];
 
@@ -98,7 +110,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
      */
     public function getStatusListing(ProjectContract $project)
     {
-        $json = (array)$this->client()->issue_status->all();
+        $json = (array)$this->client->issue_status->all();
 
         $issue_statuses = [];
 
@@ -117,7 +129,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
      */
     public function getTrackerListing(ProjectContract $project)
     {
-        $json = (array)$this->client()->tracker->all();
+        $json = (array)$this->client->tracker->all();
 
         $trackers = [];
 
@@ -136,7 +148,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
      */
     public function getAccount()
     {
-        $json = (array)$this->client()->user->getCurrentUser();
+        $json = (array)$this->client->user->getCurrentUser();
         if (isset($json['user'])) {
             return RedmineUser::createFromRemote($json['user']);
         } else {
@@ -150,7 +162,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
      */
     public function getUser($id)
     {
-        $json = (array)$this->client()->user->show($id);
+        $json = (array)$this->client->user->show($id);
         unset($json['user']['memberships']);
         unset($json['user']['groups']);
         return RedmineUser::createFromRemote((array)@$json['user']);
@@ -159,20 +171,27 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
     /**
      * Get project issue listing
      * @param ProjectContract $project
+     * @param Carbon|null $updatedDateTime
      * @return Collection|IssueContract[]
      * @see https://www.redmine.org/projects/redmine/wiki/Rest_Issues
      */
-    public function getIssues(ProjectContract $project)
+    public function getIssues(ProjectContract $project, ?Carbon $updatedDateTime = null)
     {
-        $json = (array)$this->client()->issue->all(['project_id' => $project->id]);
-        $issues = [];
+        $params = [
+            'project_id' => $project->id,
+        ];
+        if ($updatedDateTime) {
+            $params['updated_on'] = ">={$updatedDateTime->toIso8601ZuluString()}";
+        }
+        $json = (array)$this->client->issue->all($params);
+        $issues = (array)$json['issues'] ?? [];
 
-        foreach ((array)@$json['issues'] as $value) {
+        foreach ($issues as $key => $value) {
             $value['author'] = $this->getUser($value['author']['id'])->toArray();
             if (isset($value['assigned_to'])) {
                 $value['assigned_to'] = $this->getUser($value['assigned_to']['id'])->toArray();
             }
-            $issues[] = RedmineIssue::createFromRemote($value, $project);
+            $issues[$key] = RedmineIssue::createFromRemote($value, $project);
         }
 
         return collect($issues);
@@ -188,13 +207,16 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
     public function pushIssue(\App\Issue $issue, \App\Project $project)
     {
         $syncedIssue = $project->syncedIssues()->where('issue_id', $issue->id)->first();
-        $assigneId = $project->server->credentials()->where('user_id', $issue->assignee->id)->first()['ext_id'];
+        $assigneId = $issue->assignee ? $project->server->credentials()->where('user_id', $issue->assignee->id)->first()['ext_id'] : null;
         $attributes = [
             'subject' => $issue->subject,
             'description' => $issue->description,
             'project_id' => $project->ext_id,
             'assigned_to_id' => $assigneId,
-            'author_id' => $this->getAccount()->id
+            'author_id' => $this->getAccount()->id,
+            /*'tracker_id' => $issue->tracker()->ext_id,
+            'status_id' => $issue->status()->ext_id,
+            'priority_id' => $issue->priority()->ext_id,*/
         ];
 
         if ($syncedIssue) {
@@ -205,10 +227,10 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
                 'issue_id' => $issue->id,
                 'project_id' => $project->id,
                 'ext_id' => $result['id'],
-                'updated_at' => $result['updated_on']
+                'updated_at' => Carbon::parse($result['updated_on'])->setTimezone(config('app.timezone'))
             ]);
         }
-        $issue->updated_at = $result['updated_on'];
+        $issue->updated_at = Carbon::parse($result['updated_on'])->setTimezone(config('app.timezone'));
         $issue->save();
         $issue->syncedIssues()->update(['updated_at' => $issue->updated_at]);
         return $result;
@@ -222,7 +244,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
      */
     protected function createIssue(array $attributes): array
     {
-        $response = $this->client()->issue->create($attributes);
+        $response = $this->client->issue->create($attributes);
         return (array)$response;
     }
 
@@ -235,8 +257,8 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
      */
     protected function updateIssue(int $id, array $attributes): array
     {
-        $this->client()->issue->update($id, $attributes);
-        $response = $this->client()->issue->show($id)['issue'];
+        $this->client->issue->update($id, $attributes);
+        $response = $this->client->issue->show($id)['issue'];
         return (array)$response;
     }
 }

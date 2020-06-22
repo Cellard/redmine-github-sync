@@ -10,12 +10,8 @@ use App\IssueTracker\Contracts\HasDates;
 use App\IssueTracker\Contracts\HasPriority;
 use App\IssueTracker\Contracts\HasStatus;
 use App\IssueTracker\Contracts\HasTracker;
-use App\IssueTracker\Contracts\LabelContract;
-use App\IssueTracker\Contracts\MilestoneContract;
 use App\IssueTracker\Contracts\ProjectContract;
-use App\IssueTracker\Contracts\UserContract;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 class RedmineIssue extends Issue implements HasPriority, HasTracker, HasStatus, HasDates
 {
@@ -25,7 +21,7 @@ class RedmineIssue extends Issue implements HasPriority, HasTracker, HasStatus, 
         $attributes['created_at'] = Carbon::parse($attributes['created_on']);
         $attributes['updated_at'] = Carbon::parse($attributes['updated_on']);
         $attributes['author'] = RedmineUser::createFromRemote($attributes['author']);
-        $attributes['assignee'] = RedmineUser::createFromRemote($attributes['assigned_to']);
+        $attributes['assignee'] = isset($attributes['fixed_version']) ? RedmineUser::createFromRemote($attributes['assigned_to']) : null;
         $attributes['tracker'] = Label::createFromRemote($attributes['tracker'], $project);
         $attributes['status'] = Label::createFromRemote($attributes['status'], $project);
         $attributes['priority'] = Label::createFromRemote($attributes['priority'], $project);

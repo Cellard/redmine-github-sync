@@ -31,6 +31,5 @@ class AppServiceProvider extends ServiceProvider
     {
         User::observe(UserObserver::class);
         Issue::observe(IssueObserver::class);
-        SyncedIssue::observe(SyncedIssueObserver::class);
     }
 }

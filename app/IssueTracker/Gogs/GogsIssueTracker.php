@@ -15,7 +15,6 @@ use App\IssueTracker\Contracts\UserContract;
 use App\IssueTracker\Contracts\WithLabels;
 use App\SyncedIssue;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Collection;
 
 class GogsIssueTracker extends IssueTracker implements WithLabels
@@ -125,10 +124,11 @@ class GogsIssueTracker extends IssueTracker implements WithLabels
 
     /**
      * @param ProjectContract $project
+     * @param Carbon|null $updatedDateTime
      * @return Collection|IssueContract[]
      * @see https://github.com/gogs/docs-api/tree/master/Issues#list-issues-for-a-repository
      */
-    public function getIssues(ProjectContract $project)
+    public function getIssues(ProjectContract $project, ?Carbon $updatedDateTime = null)
     {
         $response = $this->client->get("/api/v1/repos/{$project->slug}/issues");
         $json = json_decode($response->getBody(), true);
