@@ -4,10 +4,16 @@ import { store } from './store'
 
 Vue.use(VueRouter);
 
-export const routes = [{
+export const routes = [
+  {
     path: '/servers',
     name: 'servers.index',
     component: () => import('./views/Servers')
+  },
+  {
+    path: '/mirrors',
+    name: 'mirrors.index',
+    component: () => import('./views/Mirrors')
   }
 ];
 

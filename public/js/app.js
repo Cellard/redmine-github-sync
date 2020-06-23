@@ -3539,6 +3539,215 @@ function mergeFn (a, b) {
 
 /***/ }),
 
+/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/MirrorFormDrawler.vue?vue&type=script&lang=js&":
+/*!****************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/MirrorFormDrawler.vue?vue&type=script&lang=js& ***!
+  \****************************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../store */ "./resources/js/store/index.js");
+/* harmony import */ var vuex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! vuex */ "./node_modules/vuex/dist/vuex.esm.js");
+/* harmony import */ var element_ui__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! element-ui */ "./node_modules/element-ui/lib/element-ui.common.js");
+/* harmony import */ var element_ui__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(element_ui__WEBPACK_IMPORTED_MODULE_3__);
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  data: function data() {
+    return {
+      loading: true,
+      direction: 'rtl',
+      drivers: [],
+      formLoading: false,
+      server: {
+        url: '',
+        driver: '',
+        key: ''
+      },
+      rules: {
+        url: [{
+          required: true,
+          message: 'Please input server Url',
+          trigger: 'blur'
+        }],
+        driver: [{
+          required: true,
+          message: 'Please input server driver',
+          trigger: 'blur'
+        }],
+        key: [{
+          required: true,
+          message: 'Please input your API key',
+          trigger: 'blur'
+        }]
+      },
+      errors: {}
+    };
+  },
+  computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['drawlerVisibility', 'drawlerData'])),
+  watch: {
+    drawlerData: function drawlerData(newValue) {
+      var _this = this;
+
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
+        var response, data;
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _this.loading = true;
+                _context.next = 3;
+                return _this.fetchData(newValue);
+
+              case 3:
+                response = _context.sent;
+
+                if (response && response.status === 200) {
+                  data = response.data.data;
+                  _this.server.url = data.base_uri;
+                  _this.server.driver = data.driver;
+                  _this.server.key = data.credential.api_key;
+                } else {
+                  _this.server = {};
+                }
+
+                _this.loading = false;
+
+              case 6:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee);
+      }))();
+    }
+  },
+  methods: {
+    show: function show() {
+      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('show');
+    },
+    close: function close() {
+      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('close');
+      this.$refs.serverForm.resetFields();
+    },
+    submit: function submit(done) {
+      var _this2 = this;
+
+      this.$refs.serverForm.validate(function (valid) {
+        if (valid) {
+          var endpoint = _this2.drawlerData ? '/api/servers/' + _this2.drawlerData : '/api/servers/';
+          var httpMethod = _this2.drawlerData ? 'put' : 'post';
+
+          _this2.$http[httpMethod](endpoint, {
+            url: _this2.server.url,
+            driver: _this2.server.driver,
+            api_key: _this2.server.key
+          }).then(function (response) {
+            element_ui__WEBPACK_IMPORTED_MODULE_3__["Message"].success('New server added.');
+
+            _this2.$router.go();
+          })["catch"](function (error) {
+            var data = error.response.data;
+
+            if (data.message) {
+              element_ui__WEBPACK_IMPORTED_MODULE_3__["Message"].error(data.message);
+            }
+
+            if (data.errors) {
+              _this2.errors = data.errors;
+            }
+          });
+        } else {
+          return false;
+        }
+      });
+    },
+    fetchData: function fetchData(id) {
+      if (id) {
+        return this.$http.get('/api/servers/' + id).then(function (response) {
+          return response;
+        });
+      } else {
+        return null;
+      }
+    },
+    fetchDrivers: function fetchDrivers() {
+      var _this3 = this;
+
+      this.$http.get('/api/drivers').then(function (response) {
+        _this3.drivers = response.data.data;
+      });
+    }
+  },
+  mounted: function mounted() {
+    var _this4 = this;
+
+    this.$refs.drawer.closeDrawer = function () {
+      _this4.close();
+    };
+
+    this.fetchDrivers();
+  }
+});
+
+/***/ }),
+
 /***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/ServerFormDrawler.vue?vue&type=script&lang=js&":
 /*!****************************************************************************************************************************************************************************!*\
   !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/ServerFormDrawler.vue?vue&type=script&lang=js& ***!
@@ -3785,6 +3994,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //
 //
 //
+//
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -3794,6 +4007,91 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     };
   },
   computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_0__["mapGetters"])(['loading']))
+});
+
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Mirrors.vue?vue&type=script&lang=js&":
+/*!*************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/views/Mirrors.vue?vue&type=script&lang=js& ***!
+  \*************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../store */ "./resources/js/store/index.js");
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  name: 'Servers',
+  data: function data() {
+    return {
+      servers: [],
+      drawlerVisible: false
+    };
+  },
+  created: function created() {
+    this.fetchData();
+  },
+  watch: {
+    '$route': 'fetchData'
+  },
+  methods: {
+    showDrawler: function showDrawler() {
+      var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+      _store__WEBPACK_IMPORTED_MODULE_0__["store"].dispatch('show', data);
+    },
+    fetchData: function fetchData() {
+      var _this = this;
+
+      this.$http.get('/api/mirrors/').then(function (response) {
+        _this.servers = response.data.data;
+        _store__WEBPACK_IMPORTED_MODULE_0__["store"].dispatch('finishLoading');
+        console.log(_store__WEBPACK_IMPORTED_MODULE_0__["store"]);
+      });
+    }
+  },
+  mounted: function mounted() {
+    this.fetchData();
+  }
 });
 
 /***/ }),
@@ -101249,6 +101547,215 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 
 /***/ }),
 
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/MirrorFormDrawler.vue?vue&type=template&id=c6d5f052&":
+/*!********************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/MirrorFormDrawler.vue?vue&type=template&id=c6d5f052& ***!
+  \********************************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "div",
+    [
+      _c(
+        "el-button",
+        {
+          staticStyle: { "margin-bottom": "10px" },
+          attrs: { type: "primary", icon: "el-icon-circle-plus" },
+          on: {
+            click: function($event) {
+              return _vm.show()
+            }
+          }
+        },
+        [_vm._v("Add server")]
+      ),
+      _vm._v(" "),
+      _c(
+        "el-drawer",
+        {
+          ref: "drawer",
+          attrs: {
+            title: _vm.drawlerData || "New Server",
+            visible: _vm.drawlerVisibility,
+            direction: _vm.direction
+          },
+          on: {
+            "update:visible": function($event) {
+              _vm.drawlerVisibility = $event
+            }
+          }
+        },
+        [
+          _c(
+            "div",
+            {
+              directives: [
+                {
+                  name: "loading",
+                  rawName: "v-loading",
+                  value: _vm.loading,
+                  expression: "loading"
+                }
+              ],
+              staticClass: "drawer__content"
+            },
+            [
+              _c(
+                "el-form",
+                {
+                  ref: "serverForm",
+                  attrs: {
+                    rules: _vm.rules,
+                    model: _vm.server,
+                    "label-position": "top"
+                  }
+                },
+                [
+                  _c(
+                    "el-form-item",
+                    {
+                      attrs: {
+                        error: _vm.errors.url ? _vm.errors.url[0] : "",
+                        label: "Url",
+                        prop: "url"
+                      }
+                    },
+                    [
+                      _c("el-input", {
+                        attrs: { autocomplete: "off" },
+                        model: {
+                          value: _vm.server.url,
+                          callback: function($$v) {
+                            _vm.$set(_vm.server, "url", $$v)
+                          },
+                          expression: "server.url"
+                        }
+                      })
+                    ],
+                    1
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "el-form-item",
+                    {
+                      attrs: {
+                        error: _vm.errors.driver ? _vm.errors.driver[0] : "",
+                        label: "Driver",
+                        prop: "driver"
+                      }
+                    },
+                    [
+                      _c(
+                        "el-select",
+                        {
+                          attrs: { placeholder: "Select" },
+                          model: {
+                            value: _vm.server.driver,
+                            callback: function($$v) {
+                              _vm.$set(_vm.server, "driver", $$v)
+                            },
+                            expression: "server.driver"
+                          }
+                        },
+                        _vm._l(_vm.drivers, function(item) {
+                          return _c("el-option", {
+                            key: item.id,
+                            attrs: { label: item.name, value: item.id }
+                          })
+                        }),
+                        1
+                      )
+                    ],
+                    1
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "el-form-item",
+                    {
+                      attrs: {
+                        error: _vm.errors.driver ? _vm.errors.driver[0] : "",
+                        label: "API key",
+                        prop: "key"
+                      }
+                    },
+                    [
+                      _c("el-input", {
+                        attrs: { autocomplete: "off" },
+                        model: {
+                          value: _vm.server.key,
+                          callback: function($$v) {
+                            _vm.$set(_vm.server, "key", $$v)
+                          },
+                          expression: "server.key"
+                        }
+                      })
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "div",
+                { staticClass: "demo-drawer__footer" },
+                [
+                  _c(
+                    "el-button",
+                    {
+                      on: {
+                        click: function($event) {
+                          return _vm.close()
+                        }
+                      }
+                    },
+                    [_vm._v("Cancel")]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "el-button",
+                    {
+                      attrs: { type: "primary", loading: _vm.formLoading },
+                      on: {
+                        click: function($event) {
+                          return _vm.submit()
+                        }
+                      }
+                    },
+                    [
+                      _vm._v(
+                        _vm._s(_vm.formLoading ? "Submitting ..." : "Submit")
+                      )
+                    ]
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ]
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+
+
+
+/***/ }),
+
 /***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/ServerFormDrawler.vue?vue&type=template&id=35484bd3&":
 /*!********************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/ServerFormDrawler.vue?vue&type=template&id=35484bd3& ***!
@@ -101496,6 +102003,16 @@ var render = function() {
                   _vm._v(" "),
                   _c("span", [_vm._v("Servers")])
                 ]
+              ),
+              _vm._v(" "),
+              _c(
+                "el-menu-item",
+                { attrs: { index: "2", route: { name: "mirrors.index" } } },
+                [
+                  _c("i", { staticClass: "el-icon-refresh" }),
+                  _vm._v(" "),
+                  _c("span", [_vm._v("Mirrors")])
+                ]
               )
             ],
             1
@@ -101526,6 +102043,111 @@ var render = function() {
           _c("el-footer", [
             _vm._v("© 101 media, " + _vm._s(new Date().getFullYear()))
           ])
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+
+
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Mirrors.vue?vue&type=template&id=978d9276&":
+/*!*****************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/views/Mirrors.vue?vue&type=template&id=978d9276& ***!
+  \*****************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "div",
+    [
+      _c(
+        "el-breadcrumb",
+        { attrs: { "separator-class": "el-icon-arrow-right" } },
+        [
+          _c("el-breadcrumb-item", { attrs: { to: { path: "/" } } }, [
+            _vm._v("Home")
+          ]),
+          _vm._v(" "),
+          _c("el-breadcrumb-item", [_vm._v("Mirrors")])
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c("mirror-form-drawler"),
+      _vm._v(" "),
+      _c(
+        "el-table",
+        { staticStyle: { width: "100%" }, attrs: { data: _vm.servers } },
+        [
+          _c("el-table-column", {
+            attrs: { label: "Server", prop: "id", width: "200px" }
+          }),
+          _vm._v(" "),
+          _c("el-table-column", {
+            attrs: { label: "Driver", prop: "driver", width: "150px" }
+          }),
+          _vm._v(" "),
+          _c("el-table-column", {
+            attrs: { prop: "credential.api_key", label: "Access Key" }
+          }),
+          _vm._v(" "),
+          _c("el-table-column", {
+            attrs: { label: "URL", width: "250px" },
+            scopedSlots: _vm._u([
+              {
+                key: "default",
+                fn: function(scope) {
+                  return [
+                    _c(
+                      "a",
+                      { attrs: { href: scope.row.base_uri, target: "_blank" } },
+                      [_vm._v(_vm._s(scope.row.base_uri))]
+                    )
+                  ]
+                }
+              }
+            ])
+          }),
+          _vm._v(" "),
+          _c("el-table-column", {
+            attrs: { fixed: "right", label: "Operations", width: "120" },
+            scopedSlots: _vm._u([
+              {
+                key: "default",
+                fn: function(scope) {
+                  return [
+                    _c(
+                      "el-button",
+                      {
+                        attrs: { type: "text" },
+                        on: {
+                          click: function($event) {
+                            return _vm.showDrawler(scope.row.id)
+                          }
+                        }
+                      },
+                      [_vm._v("Edit")]
+                    )
+                  ]
+                }
+              }
+            ])
+          })
         ],
         1
       )
@@ -117854,8 +118476,10 @@ module.exports = function(module) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
+	"./components/MirrorFormDrawler.vue": "./resources/js/components/MirrorFormDrawler.vue",
 	"./components/ServerFormDrawler.vue": "./resources/js/components/ServerFormDrawler.vue",
 	"./views/AppRoot.vue": "./resources/js/views/AppRoot.vue",
+	"./views/Mirrors.vue": "./resources/js/views/Mirrors.vue",
 	"./views/Servers.vue": "./resources/js/views/Servers.vue"
 };
 
@@ -117994,6 +118618,75 @@ window.axios.defaults.withCredentials = true;
 
 /***/ }),
 
+/***/ "./resources/js/components/MirrorFormDrawler.vue":
+/*!*******************************************************!*\
+  !*** ./resources/js/components/MirrorFormDrawler.vue ***!
+  \*******************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _MirrorFormDrawler_vue_vue_type_template_id_c6d5f052___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./MirrorFormDrawler.vue?vue&type=template&id=c6d5f052& */ "./resources/js/components/MirrorFormDrawler.vue?vue&type=template&id=c6d5f052&");
+/* harmony import */ var _MirrorFormDrawler_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./MirrorFormDrawler.vue?vue&type=script&lang=js& */ "./resources/js/components/MirrorFormDrawler.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+  _MirrorFormDrawler_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _MirrorFormDrawler_vue_vue_type_template_id_c6d5f052___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _MirrorFormDrawler_vue_vue_type_template_id_c6d5f052___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "resources/js/components/MirrorFormDrawler.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./resources/js/components/MirrorFormDrawler.vue?vue&type=script&lang=js&":
+/*!********************************************************************************!*\
+  !*** ./resources/js/components/MirrorFormDrawler.vue?vue&type=script&lang=js& ***!
+  \********************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorFormDrawler_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib??ref--4-0!../../../node_modules/vue-loader/lib??vue-loader-options!./MirrorFormDrawler.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/MirrorFormDrawler.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorFormDrawler_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./resources/js/components/MirrorFormDrawler.vue?vue&type=template&id=c6d5f052&":
+/*!**************************************************************************************!*\
+  !*** ./resources/js/components/MirrorFormDrawler.vue?vue&type=template&id=c6d5f052& ***!
+  \**************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorFormDrawler_vue_vue_type_template_id_c6d5f052___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./MirrorFormDrawler.vue?vue&type=template&id=c6d5f052& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/MirrorFormDrawler.vue?vue&type=template&id=c6d5f052&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorFormDrawler_vue_vue_type_template_id_c6d5f052___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorFormDrawler_vue_vue_type_template_id_c6d5f052___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
+
+/***/ }),
+
 /***/ "./resources/js/components/ServerFormDrawler.vue":
 /*!*******************************************************!*\
   !*** ./resources/js/components/ServerFormDrawler.vue ***!
@@ -118086,6 +118779,12 @@ var routes = [{
   name: 'servers.index',
   component: function component() {
     return Promise.resolve(/*! import() */).then(__webpack_require__.bind(null, /*! ./views/Servers */ "./resources/js/views/Servers.vue"));
+  }
+}, {
+  path: '/mirrors',
+  name: 'mirrors.index',
+  component: function component() {
+    return Promise.resolve(/*! import() */).then(__webpack_require__.bind(null, /*! ./views/Mirrors */ "./resources/js/views/Mirrors.vue"));
   }
 }];
 var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
@@ -118271,6 +118970,75 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_AppRoot_vue_vue_type_template_id_3dc40154___WEBPACK_IMPORTED_MODULE_0__["render"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_AppRoot_vue_vue_type_template_id_3dc40154___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
+
+/***/ }),
+
+/***/ "./resources/js/views/Mirrors.vue":
+/*!****************************************!*\
+  !*** ./resources/js/views/Mirrors.vue ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _Mirrors_vue_vue_type_template_id_978d9276___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Mirrors.vue?vue&type=template&id=978d9276& */ "./resources/js/views/Mirrors.vue?vue&type=template&id=978d9276&");
+/* harmony import */ var _Mirrors_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Mirrors.vue?vue&type=script&lang=js& */ "./resources/js/views/Mirrors.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+  _Mirrors_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _Mirrors_vue_vue_type_template_id_978d9276___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _Mirrors_vue_vue_type_template_id_978d9276___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "resources/js/views/Mirrors.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./resources/js/views/Mirrors.vue?vue&type=script&lang=js&":
+/*!*****************************************************************!*\
+  !*** ./resources/js/views/Mirrors.vue?vue&type=script&lang=js& ***!
+  \*****************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Mirrors_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib??ref--4-0!../../../node_modules/vue-loader/lib??vue-loader-options!./Mirrors.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Mirrors.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Mirrors_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./resources/js/views/Mirrors.vue?vue&type=template&id=978d9276&":
+/*!***********************************************************************!*\
+  !*** ./resources/js/views/Mirrors.vue?vue&type=template&id=978d9276& ***!
+  \***********************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Mirrors_vue_vue_type_template_id_978d9276___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./Mirrors.vue?vue&type=template&id=978d9276& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/views/Mirrors.vue?vue&type=template&id=978d9276&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Mirrors_vue_vue_type_template_id_978d9276___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Mirrors_vue_vue_type_template_id_978d9276___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
 
 
 

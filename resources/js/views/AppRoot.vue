@@ -6,6 +6,10 @@
           <i class="el-icon-menu"></i>
           <span>Servers</span>
         </el-menu-item>
+        <el-menu-item index="2" :route="{name: 'mirrors.index'}">
+          <i class="el-icon-refresh"></i>
+          <span>Mirrors</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 
