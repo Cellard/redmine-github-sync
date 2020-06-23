@@ -5,19 +5,12 @@
       <el-breadcrumb-item :to="{ path: '/' }">Home</el-breadcrumb-item>
       <el-breadcrumb-item>Servers</el-breadcrumb-item>
     </el-breadcrumb>
-    
-    <router-link :to="{ name: 'servers.create' }">
-      <el-button style="margin-bottom: 10px" type="primary" icon="el-icon-circle-plus">Add server</el-button>
-    </router-link>
 
+    <server-form-drawler></server-form-drawler>
+    
     <el-table :data="servers" style="width: 100%">
 
-      <el-table-column label="Server" width="200px">
-        <template slot-scope="scope">
-          <router-link :to="{ name: 'servers.edit', params: {id: scope.row.id} }">{{ scope.row.id }}
-          </router-link>
-        </template>
-      </el-table-column>
+      <el-table-column label="Server" prop="id" width="200px"></el-table-column>
 
       <el-table-column label="Driver" prop="driver" width="150px"></el-table-column>
 
@@ -26,6 +19,15 @@
       <el-table-column label="URL" width="250px">
         <template slot-scope="scope">
           <a :href="scope.row.base_uri" target="_blank">{{ scope.row.base_uri }}</a>
+        </template>
+      </el-table-column>
+
+      <el-table-column
+        fixed="right"
+        label="Operations"
+        width="120">
+        <template slot-scope="scope">
+          <el-button @click="showDrawler(scope.row.id)" type="text">Edit</el-button>
         </template>
       </el-table-column>
 
@@ -41,7 +43,8 @@
     name: 'Servers',
     data() {
       return {
-        servers: []
+        servers: [],
+        drawlerVisible: false
       }
     },
     created: function () {
@@ -51,6 +54,9 @@
       '$route': 'fetchData'
     },
     methods: {
+      showDrawler: function (data = null) {
+        store.dispatch('show', data);
+      },
       fetchData: function () {
         this.$http.get('/api/servers/')
           .then(response => {

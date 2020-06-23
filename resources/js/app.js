@@ -10,7 +10,7 @@ require('./bootstrap');
 
 window.Vue = require('vue');
 
-import AppRoot from './components/AppRoot';
+import AppRoot from './views/AppRoot';
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import locale from 'element-ui/lib/locale/lang/ru-RU';
@@ -28,14 +28,9 @@ const router = require('./router').default;
  * Eg. ./components/ExampleComponent.vue -> <example-component></example-component>
  */
 
-// const files = require.context('./', true, /\.vue$/i)
-// files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
+const files = require.context('./', true, /\.vue$/i)
+files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
-let apiToken = document.querySelector('meta[name=api-token]');
-if (apiToken && apiToken.content) {
-    apiToken = apiToken.content;
-    window.axios.defaults.headers.common['Authorization'] = 'Bearer ' + apiToken;
-}
 Vue.prototype.$http = window.axios;
 
 Vue.component('app-root', AppRoot);

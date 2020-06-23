@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,11 +14,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
-
-    Route::get('drivers', \App\Http\Controllers\Api\DriverController::class . '@index')->name('drivers.index');
-    Route::apiResource('servers', \App\Http\Controllers\Api\ServerController::class);
-
+    Route::get('/drivers', 'Api\DriverController@index')->name('drivers.index');
+    Route::apiResource('servers', 'Api\ServerController');
 });

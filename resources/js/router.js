@@ -7,18 +7,8 @@ Vue.use(VueRouter);
 export const routes = [{
     path: '/servers',
     name: 'servers.index',
-    component: () => import('./components/Servers')
-  },
-  {
-    path: '/servers/create',
-    name: 'servers.create',
-    component: () => import('./components/Server')
-  },
-  {
-    path: '/servers/:id',
-    name: 'servers.edit',
-    component: () => import('./components/Server')
-  },
+    component: () => import('./views/Servers')
+  }
 ];
 
 const router = new VueRouter({
@@ -26,8 +16,9 @@ const router = new VueRouter({
   routes,
 });
 
-router.afterEach((to, from, next) => {
+router.beforeEach((to, from, next) => {
   store.dispatch('initLoading');
+  next();
 })
 
 export default router;

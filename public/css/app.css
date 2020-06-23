@@ -10918,6 +10918,23 @@ body #app main #container .el-breadcrumb {
   margin-bottom: 20px;
 }
 
+html #app main #container .el-drawer__header,
+body #app main #container .el-drawer__header {
+  font-size: 22px;
+}
+
+html #app main #container .drawer__content,
+body #app main #container .drawer__content {
+  padding: 0 20px;
+  margin-bottom: 20px;
+}
+
+html #app main #container .drawer__content .el-form-item__label,
+body #app main #container .drawer__content .el-form-item__label {
+  padding-bottom: 0;
+  margin: 0;
+}
+
 html #app footer,
 body #app footer {
   display: flex;

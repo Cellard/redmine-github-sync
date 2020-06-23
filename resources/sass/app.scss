@@ -32,6 +32,19 @@ html,body {
         .el-breadcrumb {
           margin-bottom: 20px;
         }
+
+        .el-drawer__header {
+          font-size: 22px;
+        }
+
+        .drawer__content {
+          padding: 0 20px;
+          margin-bottom: 20px;
+          .el-form-item__label {
+            padding-bottom: 0;
+            margin: 0;
+          }
+        }
       }
     }
 
