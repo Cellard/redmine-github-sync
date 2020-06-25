@@ -10923,6 +10923,11 @@ body #app main #container .el-drawer__header {
   font-size: 22px;
 }
 
+html #app main #container .el-drawer,
+body #app main #container .el-drawer {
+  overflow: auto;
+}
+
 html #app main #container .drawer__content,
 body #app main #container .drawer__content {
   padding: 0 20px;

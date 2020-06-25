@@ -6,6 +6,7 @@ export default {
     },
     close (ctx) {
       ctx.commit('updateVisibility', false);
+      ctx.commit('updateData', null);
     }
   },
   mutations: {

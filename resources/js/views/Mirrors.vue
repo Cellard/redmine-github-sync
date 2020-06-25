@@ -8,17 +8,29 @@
 
     <mirror-form-drawler></mirror-form-drawler>
     
-    <el-table :data="servers" style="width: 100%">
+    <el-table :data="mirrors" style="width: 100%">
 
-      <el-table-column label="Server" prop="id" width="200px"></el-table-column>
-
-      <el-table-column label="Driver" prop="driver" width="150px"></el-table-column>
-
-      <el-table-column prop="credential.api_key" label="Access Key"></el-table-column>
-
-      <el-table-column label="URL" width="250px">
+      <el-table-column label="Left" width="200px">
         <template slot-scope="scope">
-          <a :href="scope.row.base_uri" target="_blank">{{ scope.row.base_uri }}</a>
+          <span>{{ scope.row.left.name }}</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="Left url">
+        <template slot-scope="scope">
+          <span>{{ scope.row.left.server.base_uri }}</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="Right">
+        <template slot-scope="scope">
+          <span>{{ scope.row.right.name }}</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="Right url">
+        <template slot-scope="scope">
+          <span>{{ scope.row.right.server.base_uri }}</span>
         </template>
       </el-table-column>
 
@@ -40,10 +52,10 @@
   import { store } from '../store'
 
   export default {
-    name: 'Servers',
+    name: 'Mirrors',
     data() {
       return {
-        servers: [],
+        mirrors: [],
         drawlerVisible: false
       }
     },
@@ -60,10 +72,8 @@
       fetchData: function () {
         this.$http.get('/api/mirrors/')
           .then(response => {
-            this.servers = response.data.data;
-            store.dispatch('finishLoading');
-            console.log(store);
-            
+            this.mirrors = response.data.data;
+            store.dispatch('finishLoading');            
           });
       }
     },

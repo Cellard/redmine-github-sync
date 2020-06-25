@@ -6,9 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ApiRequest;
 use App\Http\Requests\StoreServer;
 use App\Http\Resources\DefaultResource;
-use App\Http\Resources\ServerResource;
-use App\Server;
-use App\User;
+use App\Http\Resources\MirrorResource;
+use App\Mirror;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +21,8 @@ class MirrorController extends Controller
      */
     public function index(ApiRequest $request)
     {
-        return DefaultResource::collection($request->user()->mirrors);
+        $mirrors = $request->user()->mirrors()->with(['left', 'left.server', 'right', 'right.server'])->get();
+        return DefaultResource::collection($mirrors);
     }
 
     /**
@@ -31,14 +31,31 @@ class MirrorController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreServer $request)
+    public function store(Request $request)
     {
-        
+        $mirrorLabels = [];
+        $mirror = Mirror::create([
+            'user_id' => Auth::id(),
+            'left_type' => 'App\Project',
+            'left_id' => $request->left['project'],
+            'right_type' => 'App\Project',
+            'right_id' => $request->right['project']
+        ]);
+
+        foreach ($request->labels as $label) {
+            $mirrorLabels[] = [
+                'left_label_id' => $label['left_label_id'],
+                'right_label_id' => $label['right_label_id']
+            ];
+        }
+
+        $mirror->labels()->createMany($mirrorLabels);
+        return new DefaultResource($mirror);
     }
 
-    public function show(Mirror $server)
+    public function show(Mirror $mirror)
     {
-        
+        return MirrorResource::make($mirror);
     }
 
     /**
@@ -48,9 +65,30 @@ class MirrorController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(StoreServer $request, $id)
+    public function update(Request $request, $id)
     {
-        
+        $mirrorLabels = [];
+        $mirror = Mirror::find($id);
+        $mirror->update([
+            'user_id' => Auth::id(),
+            'left_type' => 'App\Project',
+            'left_id' => $request->left['project'],
+            'right_type' => 'App\Project',
+            'right_id' => $request->right['project']
+        ]);
+
+        $mirror->labels()->delete();
+        foreach ($request->labels as $label) {
+            if (isset($label['left_label_id']) && isset($label['right_label_id'])) {
+                $mirrorLabels[] = [
+                    'left_label_id' => $label['left_label_id'],
+                    'right_label_id' => $label['right_label_id']
+                ];
+            }
+        }
+
+        $mirror->labels()->createMany($mirrorLabels);
+        return new DefaultResource($mirror);
     }
 
     /**

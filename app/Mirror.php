@@ -18,6 +18,14 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Mirror extends Model
 {
+    protected $fillable = [
+        'user_id',
+        'left_type',
+        'left_id',
+        'right_type',
+        'right_id'
+    ];
+
     protected $dates = ['synced_at'];
 
     public function left()
@@ -87,6 +95,10 @@ class Mirror extends Model
                 function (Builder $query) use ($model) {
                     $query->whereKey($model->getKey());
                 });
+    }
 
+    public function labels()
+    {
+        return $this->hasMany(MirrorLabel::class);
     }
 }

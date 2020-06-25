@@ -23,7 +23,7 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item :error="errors.driver ? errors.driver[0] : ''" label="API key" prop="key">
+          <el-form-item :error="errors.driver ? errors.key[0] : ''" label="API key" prop="key">
             <el-input v-model="server.key" autocomplete="off"></el-input>
           </el-form-item>
         </el-form>

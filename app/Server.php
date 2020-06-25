@@ -102,4 +102,9 @@ class Server extends Model
 
         return $relation;
     }
+
+    public function enumerations()
+    {
+        return $this->hasMany(Label::class);
+    }
 }

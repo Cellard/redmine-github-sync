@@ -83,4 +83,14 @@ class ServerController extends Controller
     {
         //
     }
+
+    public function projects($id)
+    {
+        return DefaultResource::collection(Server::find($id)->projects);
+    }
+
+    public function labels($id)
+    {
+        return DefaultResource::collection(Server::find($id)->enumerations);
+    }
 }

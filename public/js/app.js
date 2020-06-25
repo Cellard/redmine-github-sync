@@ -3603,8 +3603,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //
 //
 //
-//
-//
 
 
 
@@ -3613,34 +3611,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     return {
       loading: true,
       direction: 'rtl',
-      drivers: [],
-      formLoading: false,
-      server: {
-        url: '',
-        driver: '',
-        key: ''
-      },
-      rules: {
-        url: [{
-          required: true,
-          message: 'Please input server Url',
-          trigger: 'blur'
-        }],
-        driver: [{
-          required: true,
-          message: 'Please input server driver',
-          trigger: 'blur'
-        }],
-        key: [{
-          required: true,
-          message: 'Please input your API key',
-          trigger: 'blur'
-        }]
-      },
-      errors: {}
+      formLoading: false
     };
   },
-  computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['drawlerVisibility', 'drawlerData'])),
+  computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['drawlerVisibility', 'drawlerData', 'leftMirror', 'rightMirror', 'mirrorLabels'])),
   watch: {
     drawlerData: function drawlerData(newValue) {
       var _this = this;
@@ -3651,25 +3625,47 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _this.loading = true;
-                _context.next = 3;
-                return _this.fetchData(newValue);
+                if (newValue) {
+                  _context.next = 3;
+                  break;
+                }
+
+                _this.reset();
+
+                return _context.abrupt("return");
 
               case 3:
+                _this.loading = true;
+                _context.next = 6;
+                return _this.fetchData(newValue);
+
+              case 6:
                 response = _context.sent;
 
                 if (response && response.status === 200) {
                   data = response.data.data;
-                  _this.server.url = data.base_uri;
-                  _this.server.driver = data.driver;
-                  _this.server.key = data.credential.api_key;
+                  _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setMirror', {
+                    position: 'left',
+                    value: {
+                      server: data.left.server_id,
+                      project: data.left.id
+                    }
+                  });
+                  _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setMirror', {
+                    position: 'right',
+                    value: {
+                      server: data.right.server_id,
+                      project: data.right.id
+                    }
+                  });
+                  _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setLabels', data.labels);
                 } else {
-                  _this.server = {};
+                  _this.reset();
                 }
 
                 _this.loading = false;
 
-              case 6:
+              case 9:
               case "end":
                 return _context.stop();
             }
@@ -3684,65 +3680,424 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     },
     close: function close() {
       _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('close');
-      this.$refs.serverForm.resetFields();
+    },
+    reset: function reset() {
+      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setMirror', {
+        position: 'left',
+        value: {
+          server: '',
+          project: ''
+        }
+      });
+      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setMirror', {
+        position: 'right',
+        value: {
+          server: '',
+          project: ''
+        }
+      });
+      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setLabels', []);
     },
     submit: function submit(done) {
       var _this2 = this;
 
-      this.$refs.serverForm.validate(function (valid) {
-        if (valid) {
-          var endpoint = _this2.drawlerData ? '/api/servers/' + _this2.drawlerData : '/api/servers/';
-          var httpMethod = _this2.drawlerData ? 'put' : 'post';
+      var endpoint = this.drawlerData ? '/api/mirrors/' + this.drawlerData : '/api/mirrors/';
+      var httpMethod = this.drawlerData ? 'put' : 'post';
+      this.$http[httpMethod](endpoint, {
+        left: this.leftMirror,
+        right: this.rightMirror,
+        labels: this.mirrorLabels
+      }).then(function (response) {
+        element_ui__WEBPACK_IMPORTED_MODULE_3__["Message"].success('New server added.');
 
-          _this2.$http[httpMethod](endpoint, {
-            url: _this2.server.url,
-            driver: _this2.server.driver,
-            api_key: _this2.server.key
-          }).then(function (response) {
-            element_ui__WEBPACK_IMPORTED_MODULE_3__["Message"].success('New server added.');
+        _this2.$router.go();
+      })["catch"](function (error) {
+        var data = error.response.data;
 
-            _this2.$router.go();
-          })["catch"](function (error) {
-            var data = error.response.data;
+        if (data.message) {
+          element_ui__WEBPACK_IMPORTED_MODULE_3__["Message"].error(data.message);
+        }
 
-            if (data.message) {
-              element_ui__WEBPACK_IMPORTED_MODULE_3__["Message"].error(data.message);
-            }
-
-            if (data.errors) {
-              _this2.errors = data.errors;
-            }
-          });
-        } else {
-          return false;
+        if (data.errors) {
+          _this2.errors = data.errors;
         }
       });
     },
     fetchData: function fetchData(id) {
-      if (id) {
-        return this.$http.get('/api/servers/' + id).then(function (response) {
-          return response;
-        });
-      } else {
-        return null;
-      }
-    },
-    fetchDrivers: function fetchDrivers() {
-      var _this3 = this;
-
-      this.$http.get('/api/drivers').then(function (response) {
-        _this3.drivers = response.data.data;
+      return this.$http.get('/api/mirrors/' + id).then(function (response) {
+        return response;
       });
     }
   },
   mounted: function mounted() {
-    var _this4 = this;
+    var _this3 = this;
 
     this.$refs.drawer.closeDrawer = function () {
-      _this4.close();
+      _this3.close();
     };
+  }
+});
 
-    this.fetchDrivers();
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/MirrorLabelsForm.vue?vue&type=script&lang=js&":
+/*!***************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/MirrorLabelsForm.vue?vue&type=script&lang=js& ***!
+  \***************************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../store */ "./resources/js/store/index.js");
+/* harmony import */ var vuex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! vuex */ "./node_modules/vuex/dist/vuex.esm.js");
+/* harmony import */ var element_ui__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! element-ui */ "./node_modules/element-ui/lib/element-ui.common.js");
+/* harmony import */ var element_ui__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(element_ui__WEBPACK_IMPORTED_MODULE_3__);
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  data: function data() {
+    return {
+      loading: true,
+      direction: 'rtl',
+      left: [],
+      right: [],
+      labelsMap: [{
+        id: 1,
+        left_label_id: '',
+        right_label_id: ''
+      }]
+    };
+  },
+  computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['mirrorLabels', 'leftMirror', 'rightMirror'])),
+  watch: {
+    leftMirror: function leftMirror(newValue) {
+      var _this = this;
+
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (!newValue.server) {
+                  _context.next = 4;
+                  break;
+                }
+
+                _context.next = 3;
+                return _this.fetchLabels(newValue.server);
+
+              case 3:
+                _this.left = _context.sent;
+
+              case 4:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee);
+      }))();
+    },
+    rightMirror: function rightMirror(newValue) {
+      var _this2 = this;
+
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee2() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                if (!newValue.server) {
+                  _context2.next = 4;
+                  break;
+                }
+
+                _context2.next = 3;
+                return _this2.fetchLabels(newValue.server);
+
+              case 3:
+                _this2.right = _context2.sent;
+
+              case 4:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2);
+      }))();
+    },
+    mirrorLabels: function mirrorLabels(newValue) {
+      var _this3 = this;
+
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee3() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                if (newValue.length) _this3.labelsMap = newValue;else _this3.labelsMap = [{
+                  id: 1,
+                  left_label_id: '',
+                  right_label_id: ''
+                }];
+
+              case 1:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3);
+      }))();
+    }
+  },
+  methods: {
+    fetchLabels: function fetchLabels(id) {
+      return this.$http.get('/api/servers/' + id + '/labels').then(function (response) {
+        return response.data.data;
+      });
+    },
+    onLabelChange: function onLabelChange() {
+      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setLabels', this.labelsMap);
+    },
+    addRow: function addRow() {
+      this.labelsMap.push({
+        id: Date.now(),
+        left_label_id: '',
+        right_label_id: ''
+      });
+    },
+    removeRow: function removeRow(item) {
+      var index = this.labelsMap.indexOf(item);
+
+      if (this.labelsMap.length !== 1) {
+        this.labelsMap.splice(index, 1);
+      }
+    }
+  },
+  mounted: function () {
+    var _mounted = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee4() {
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee4$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              if (!this.leftMirror.server) {
+                _context4.next = 4;
+                break;
+              }
+
+              _context4.next = 3;
+              return this.fetchLabels(this.leftMirror.server);
+
+            case 3:
+              this.left = _context4.sent;
+
+            case 4:
+              if (!this.rightMirror.server) {
+                _context4.next = 8;
+                break;
+              }
+
+              _context4.next = 7;
+              return this.fetchLabels(this.rightMirror.server);
+
+            case 7:
+              this.right = _context4.sent;
+
+            case 8:
+            case "end":
+              return _context4.stop();
+          }
+        }
+      }, _callee4, this);
+    }));
+
+    function mounted() {
+      return _mounted.apply(this, arguments);
+    }
+
+    return mounted;
+  }()
+});
+
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/MirrorProjectForm.vue?vue&type=script&lang=js&":
+/*!****************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/MirrorProjectForm.vue?vue&type=script&lang=js& ***!
+  \****************************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
+/* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../store */ "./resources/js/store/index.js");
+/* harmony import */ var vuex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! vuex */ "./node_modules/vuex/dist/vuex.esm.js");
+
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  props: ['position'],
+  data: function data() {
+    return {
+      loading: true,
+      direction: 'rtl',
+      servers: [],
+      projects: [],
+      rules: {
+        server: [{
+          required: true,
+          message: 'Please select server',
+          trigger: 'blur'
+        }],
+        project: [{
+          required: true,
+          message: 'Please select project',
+          trigger: 'blur'
+        }]
+      },
+      errors: {}
+    };
+  },
+  computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['leftMirror', 'rightMirror']), {
+    mirror: function mirror() {
+      return this.position === 'left' ? this.leftMirror : this.rightMirror;
+    }
+  }),
+  watch: {
+    mirror: function mirror(newValue) {
+      var _this = this;
+
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _this.fetchProjects(newValue.server);
+
+              case 1:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee);
+      }))();
+    }
+  },
+  methods: {
+    fetchServers: function fetchServers() {
+      var _this2 = this;
+
+      this.$http.get('/api/servers').then(function (response) {
+        console.log(response.data);
+        _this2.servers = response.data.data;
+      });
+    },
+    onServerChange: function onServerChange(id) {
+      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setMirror', {
+        position: this.position,
+        value: {
+          server: this.mirror.server,
+          project: ''
+        }
+      });
+      this.fetchProjects(id);
+    },
+    fetchProjects: function fetchProjects(id) {
+      var _this3 = this;
+
+      if (id) {
+        this.$http.get('/api/servers/' + id + '/projects').then(function (response) {
+          _this3.projects = response.data.data;
+        });
+      } else {
+        return null;
+      }
+    }
+  },
+  mounted: function mounted() {
+    this.fetchServers();
   }
 });
 
@@ -4059,12 +4414,24 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-  name: 'Servers',
+  name: 'Mirrors',
   data: function data() {
     return {
-      servers: [],
+      mirrors: [],
       drawlerVisible: false
     };
   },
@@ -4083,9 +4450,8 @@ __webpack_require__.r(__webpack_exports__);
       var _this = this;
 
       this.$http.get('/api/mirrors/').then(function (response) {
-        _this.servers = response.data.data;
+        _this.mirrors = response.data.data;
         _store__WEBPACK_IMPORTED_MODULE_0__["store"].dispatch('finishLoading');
-        console.log(_store__WEBPACK_IMPORTED_MODULE_0__["store"]);
       });
     }
   },
@@ -101576,7 +101942,7 @@ var render = function() {
             }
           }
         },
-        [_vm._v("Add server")]
+        [_vm._v("Add mirror")]
       ),
       _vm._v(" "),
       _c(
@@ -101584,7 +101950,9 @@ var render = function() {
         {
           ref: "drawer",
           attrs: {
-            title: _vm.drawlerData || "New Server",
+            title: _vm.drawlerData
+              ? _vm.leftMirror.server + " - " + _vm.rightMirror.server
+              : "New Mirror",
             visible: _vm.drawlerVisibility,
             direction: _vm.direction
           },
@@ -101609,101 +101977,25 @@ var render = function() {
               staticClass: "drawer__content"
             },
             [
-              _c(
-                "el-form",
-                {
-                  ref: "serverForm",
-                  attrs: {
-                    rules: _vm.rules,
-                    model: _vm.server,
-                    "label-position": "top"
-                  }
-                },
-                [
-                  _c(
-                    "el-form-item",
-                    {
-                      attrs: {
-                        error: _vm.errors.url ? _vm.errors.url[0] : "",
-                        label: "Url",
-                        prop: "url"
-                      }
-                    },
-                    [
-                      _c("el-input", {
-                        attrs: { autocomplete: "off" },
-                        model: {
-                          value: _vm.server.url,
-                          callback: function($$v) {
-                            _vm.$set(_vm.server, "url", $$v)
-                          },
-                          expression: "server.url"
-                        }
-                      })
-                    ],
-                    1
-                  ),
-                  _vm._v(" "),
-                  _c(
-                    "el-form-item",
-                    {
-                      attrs: {
-                        error: _vm.errors.driver ? _vm.errors.driver[0] : "",
-                        label: "Driver",
-                        prop: "driver"
-                      }
-                    },
-                    [
-                      _c(
-                        "el-select",
-                        {
-                          attrs: { placeholder: "Select" },
-                          model: {
-                            value: _vm.server.driver,
-                            callback: function($$v) {
-                              _vm.$set(_vm.server, "driver", $$v)
-                            },
-                            expression: "server.driver"
-                          }
-                        },
-                        _vm._l(_vm.drivers, function(item) {
-                          return _c("el-option", {
-                            key: item.id,
-                            attrs: { label: item.name, value: item.id }
-                          })
-                        }),
-                        1
-                      )
-                    ],
-                    1
-                  ),
-                  _vm._v(" "),
-                  _c(
-                    "el-form-item",
-                    {
-                      attrs: {
-                        error: _vm.errors.driver ? _vm.errors.driver[0] : "",
-                        label: "API key",
-                        prop: "key"
-                      }
-                    },
-                    [
-                      _c("el-input", {
-                        attrs: { autocomplete: "off" },
-                        model: {
-                          value: _vm.server.key,
-                          callback: function($$v) {
-                            _vm.$set(_vm.server, "key", $$v)
-                          },
-                          expression: "server.key"
-                        }
-                      })
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
+              _c("el-divider", { attrs: { "content-position": "left" } }, [
+                _c("h4", [_vm._v("Left")])
+              ]),
+              _vm._v(" "),
+              _c("mirror-project-form", { attrs: { position: "left" } }),
+              _vm._v(" "),
+              _c("el-divider", { attrs: { "content-position": "left" } }, [
+                _c("h4", [_vm._v("Right")])
+              ]),
+              _vm._v(" "),
+              _c("mirror-project-form", { attrs: { position: "right" } }),
+              _vm._v(" "),
+              _c("el-divider", { attrs: { "content-position": "left" } }, [
+                _c("h4", [_vm._v("Labels")])
+              ]),
+              _vm._v(" "),
+              _c("mirror-labels-form"),
+              _vm._v(" "),
+              _c("el-divider"),
               _vm._v(" "),
               _c(
                 "div",
@@ -101744,6 +102036,233 @@ var render = function() {
             1
           )
         ]
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+
+
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/MirrorLabelsForm.vue?vue&type=template&id=69f82fed&":
+/*!*******************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/MirrorLabelsForm.vue?vue&type=template&id=69f82fed& ***!
+  \*******************************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "el-form",
+    { ref: "mirrorForm", attrs: { inline: true, "label-position": "top" } },
+    [
+      _vm._l(_vm.labelsMap, function(label) {
+        return _c(
+          "div",
+          { key: label.id },
+          [
+            _c(
+              "el-form-item",
+              { attrs: { label: "Left label" } },
+              [
+                _c(
+                  "el-select",
+                  {
+                    attrs: { placeholder: "Select" },
+                    on: { change: _vm.onLabelChange },
+                    model: {
+                      value: label.left_label_id,
+                      callback: function($$v) {
+                        _vm.$set(label, "left_label_id", $$v)
+                      },
+                      expression: "label.left_label_id"
+                    }
+                  },
+                  _vm._l(_vm.left, function(item) {
+                    return _c("el-option", {
+                      key: item.id,
+                      attrs: { label: item.name, value: item.id }
+                    })
+                  }),
+                  1
+                )
+              ],
+              1
+            ),
+            _vm._v(" "),
+            _c(
+              "el-form-item",
+              { attrs: { label: "Right label" } },
+              [
+                _c(
+                  "el-select",
+                  {
+                    attrs: { placeholder: "Select" },
+                    on: { change: _vm.onLabelChange },
+                    model: {
+                      value: label.right_label_id,
+                      callback: function($$v) {
+                        _vm.$set(label, "right_label_id", $$v)
+                      },
+                      expression: "label.right_label_id"
+                    }
+                  },
+                  _vm._l(_vm.right, function(item) {
+                    return _c("el-option", {
+                      key: item.id,
+                      attrs: { label: item.name, value: item.id }
+                    })
+                  }),
+                  1
+                )
+              ],
+              1
+            ),
+            _vm._v(" "),
+            _c(
+              "el-form-item",
+              { staticStyle: { "vertical-align": "bottom" } },
+              [
+                _c("el-button", {
+                  attrs: { type: "danger", icon: "el-icon-delete", circle: "" },
+                  on: {
+                    click: function($event) {
+                      return _vm.removeRow(label)
+                    }
+                  }
+                })
+              ],
+              1
+            )
+          ],
+          1
+        )
+      }),
+      _vm._v(" "),
+      _c(
+        "el-button",
+        {
+          attrs: { type: "primary", icon: "el-icon-circle-plus", round: "" },
+          on: { click: _vm.addRow }
+        },
+        [_vm._v("Add")]
+      )
+    ],
+    2
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+
+
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/MirrorProjectForm.vue?vue&type=template&id=d234573a&":
+/*!********************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/MirrorProjectForm.vue?vue&type=template&id=d234573a& ***!
+  \********************************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return staticRenderFns; });
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "el-form",
+    {
+      ref: "mirrorForm",
+      attrs: {
+        inline: true,
+        rules: _vm.rules,
+        model: _vm.mirror,
+        "label-position": "top"
+      }
+    },
+    [
+      _c(
+        "el-form-item",
+        {
+          attrs: {
+            error: _vm.errors.server ? _vm.errors.server[0] : "",
+            label: "Server",
+            prop: "server"
+          }
+        },
+        [
+          _c(
+            "el-select",
+            {
+              attrs: { placeholder: "Select" },
+              on: { change: _vm.onServerChange },
+              model: {
+                value: _vm.mirror.server,
+                callback: function($$v) {
+                  _vm.$set(_vm.mirror, "server", $$v)
+                },
+                expression: "mirror.server"
+              }
+            },
+            _vm._l(_vm.servers, function(item) {
+              return _c("el-option", {
+                key: item.id,
+                attrs: { label: item.name, value: item.id }
+              })
+            }),
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "el-form-item",
+        {
+          attrs: {
+            error: _vm.errors.server ? _vm.errors.server[0] : "",
+            label: "Project",
+            prop: "project"
+          }
+        },
+        [
+          _c(
+            "el-select",
+            {
+              attrs: { disabled: !_vm.projects.length, placeholder: "Select" },
+              model: {
+                value: _vm.mirror.project,
+                callback: function($$v) {
+                  _vm.$set(_vm.mirror, "project", $$v)
+                },
+                expression: "mirror.project"
+              }
+            },
+            _vm._l(_vm.projects, function(item) {
+              return _c("el-option", {
+                key: item.id,
+                attrs: { label: item.name, value: item.id }
+              })
+            }),
+            1
+          )
+        ],
+        1
       )
     ],
     1
@@ -101891,7 +102410,7 @@ var render = function() {
                     "el-form-item",
                     {
                       attrs: {
-                        error: _vm.errors.driver ? _vm.errors.driver[0] : "",
+                        error: _vm.errors.driver ? _vm.errors.key[0] : "",
                         label: "API key",
                         prop: "key"
                       }
@@ -102092,32 +102611,56 @@ var render = function() {
       _vm._v(" "),
       _c(
         "el-table",
-        { staticStyle: { width: "100%" }, attrs: { data: _vm.servers } },
+        { staticStyle: { width: "100%" }, attrs: { data: _vm.mirrors } },
         [
           _c("el-table-column", {
-            attrs: { label: "Server", prop: "id", width: "200px" }
+            attrs: { label: "Left", width: "200px" },
+            scopedSlots: _vm._u([
+              {
+                key: "default",
+                fn: function(scope) {
+                  return [_c("span", [_vm._v(_vm._s(scope.row.left.name))])]
+                }
+              }
+            ])
           }),
           _vm._v(" "),
           _c("el-table-column", {
-            attrs: { label: "Driver", prop: "driver", width: "150px" }
-          }),
-          _vm._v(" "),
-          _c("el-table-column", {
-            attrs: { prop: "credential.api_key", label: "Access Key" }
-          }),
-          _vm._v(" "),
-          _c("el-table-column", {
-            attrs: { label: "URL", width: "250px" },
+            attrs: { label: "Left url" },
             scopedSlots: _vm._u([
               {
                 key: "default",
                 fn: function(scope) {
                   return [
-                    _c(
-                      "a",
-                      { attrs: { href: scope.row.base_uri, target: "_blank" } },
-                      [_vm._v(_vm._s(scope.row.base_uri))]
-                    )
+                    _c("span", [_vm._v(_vm._s(scope.row.left.server.base_uri))])
+                  ]
+                }
+              }
+            ])
+          }),
+          _vm._v(" "),
+          _c("el-table-column", {
+            attrs: { label: "Right" },
+            scopedSlots: _vm._u([
+              {
+                key: "default",
+                fn: function(scope) {
+                  return [_c("span", [_vm._v(_vm._s(scope.row.right.name))])]
+                }
+              }
+            ])
+          }),
+          _vm._v(" "),
+          _c("el-table-column", {
+            attrs: { label: "Right url" },
+            scopedSlots: _vm._u([
+              {
+                key: "default",
+                fn: function(scope) {
+                  return [
+                    _c("span", [
+                      _vm._v(_vm._s(scope.row.right.server.base_uri))
+                    ])
                   ]
                 }
               }
@@ -118477,6 +119020,8 @@ module.exports = function(module) {
 
 var map = {
 	"./components/MirrorFormDrawler.vue": "./resources/js/components/MirrorFormDrawler.vue",
+	"./components/MirrorLabelsForm.vue": "./resources/js/components/MirrorLabelsForm.vue",
+	"./components/MirrorProjectForm.vue": "./resources/js/components/MirrorProjectForm.vue",
 	"./components/ServerFormDrawler.vue": "./resources/js/components/ServerFormDrawler.vue",
 	"./views/AppRoot.vue": "./resources/js/views/AppRoot.vue",
 	"./views/Mirrors.vue": "./resources/js/views/Mirrors.vue",
@@ -118687,6 +119232,144 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./resources/js/components/MirrorLabelsForm.vue":
+/*!******************************************************!*\
+  !*** ./resources/js/components/MirrorLabelsForm.vue ***!
+  \******************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _MirrorLabelsForm_vue_vue_type_template_id_69f82fed___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./MirrorLabelsForm.vue?vue&type=template&id=69f82fed& */ "./resources/js/components/MirrorLabelsForm.vue?vue&type=template&id=69f82fed&");
+/* harmony import */ var _MirrorLabelsForm_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./MirrorLabelsForm.vue?vue&type=script&lang=js& */ "./resources/js/components/MirrorLabelsForm.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+  _MirrorLabelsForm_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _MirrorLabelsForm_vue_vue_type_template_id_69f82fed___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _MirrorLabelsForm_vue_vue_type_template_id_69f82fed___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "resources/js/components/MirrorLabelsForm.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./resources/js/components/MirrorLabelsForm.vue?vue&type=script&lang=js&":
+/*!*******************************************************************************!*\
+  !*** ./resources/js/components/MirrorLabelsForm.vue?vue&type=script&lang=js& ***!
+  \*******************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorLabelsForm_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib??ref--4-0!../../../node_modules/vue-loader/lib??vue-loader-options!./MirrorLabelsForm.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/MirrorLabelsForm.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorLabelsForm_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./resources/js/components/MirrorLabelsForm.vue?vue&type=template&id=69f82fed&":
+/*!*************************************************************************************!*\
+  !*** ./resources/js/components/MirrorLabelsForm.vue?vue&type=template&id=69f82fed& ***!
+  \*************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorLabelsForm_vue_vue_type_template_id_69f82fed___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./MirrorLabelsForm.vue?vue&type=template&id=69f82fed& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/MirrorLabelsForm.vue?vue&type=template&id=69f82fed&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorLabelsForm_vue_vue_type_template_id_69f82fed___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorLabelsForm_vue_vue_type_template_id_69f82fed___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
+
+/***/ }),
+
+/***/ "./resources/js/components/MirrorProjectForm.vue":
+/*!*******************************************************!*\
+  !*** ./resources/js/components/MirrorProjectForm.vue ***!
+  \*******************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _MirrorProjectForm_vue_vue_type_template_id_d234573a___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./MirrorProjectForm.vue?vue&type=template&id=d234573a& */ "./resources/js/components/MirrorProjectForm.vue?vue&type=template&id=d234573a&");
+/* harmony import */ var _MirrorProjectForm_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./MirrorProjectForm.vue?vue&type=script&lang=js& */ "./resources/js/components/MirrorProjectForm.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+/* normalize component */
+
+var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+  _MirrorProjectForm_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _MirrorProjectForm_vue_vue_type_template_id_d234573a___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _MirrorProjectForm_vue_vue_type_template_id_d234573a___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "resources/js/components/MirrorProjectForm.vue"
+/* harmony default export */ __webpack_exports__["default"] = (component.exports);
+
+/***/ }),
+
+/***/ "./resources/js/components/MirrorProjectForm.vue?vue&type=script&lang=js&":
+/*!********************************************************************************!*\
+  !*** ./resources/js/components/MirrorProjectForm.vue?vue&type=script&lang=js& ***!
+  \********************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorProjectForm_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib??ref--4-0!../../../node_modules/vue-loader/lib??vue-loader-options!./MirrorProjectForm.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/MirrorProjectForm.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorProjectForm_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
+/***/ "./resources/js/components/MirrorProjectForm.vue?vue&type=template&id=d234573a&":
+/*!**************************************************************************************!*\
+  !*** ./resources/js/components/MirrorProjectForm.vue?vue&type=template&id=d234573a& ***!
+  \**************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorProjectForm_vue_vue_type_template_id_d234573a___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./MirrorProjectForm.vue?vue&type=template&id=d234573a& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/MirrorProjectForm.vue?vue&type=template&id=d234573a&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorProjectForm_vue_vue_type_template_id_d234573a___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_MirrorProjectForm_vue_vue_type_template_id_d234573a___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+
+
+
+/***/ }),
+
 /***/ "./resources/js/components/ServerFormDrawler.vue":
 /*!*******************************************************!*\
   !*** ./resources/js/components/ServerFormDrawler.vue ***!
@@ -118814,6 +119497,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vuex__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! vuex */ "./node_modules/vuex/dist/vuex.esm.js");
 /* harmony import */ var _modules_app__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./modules/app */ "./resources/js/store/modules/app.js");
 /* harmony import */ var _modules_drawler__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./modules/drawler */ "./resources/js/store/modules/drawler.js");
+/* harmony import */ var _modules_mirror__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./modules/mirror */ "./resources/js/store/modules/mirror.js");
+
 
 
 
@@ -118822,7 +119507,8 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vuex__WEBPACK_IMPORTED_MODULE_1__
 var store = new vuex__WEBPACK_IMPORTED_MODULE_1__["default"].Store({
   modules: {
     app: _modules_app__WEBPACK_IMPORTED_MODULE_2__["default"],
-    drawler: _modules_drawler__WEBPACK_IMPORTED_MODULE_3__["default"]
+    drawler: _modules_drawler__WEBPACK_IMPORTED_MODULE_3__["default"],
+    mirror: _modules_mirror__WEBPACK_IMPORTED_MODULE_4__["default"]
   }
 });
 
@@ -118880,6 +119566,7 @@ __webpack_require__.r(__webpack_exports__);
     },
     close: function close(ctx) {
       ctx.commit('updateVisibility', false);
+      ctx.commit('updateData', null);
     }
   },
   mutations: {
@@ -118900,6 +119587,59 @@ __webpack_require__.r(__webpack_exports__);
     },
     drawlerData: function drawlerData(state) {
       return state.data;
+    }
+  }
+});
+
+/***/ }),
+
+/***/ "./resources/js/store/modules/mirror.js":
+/*!**********************************************!*\
+  !*** ./resources/js/store/modules/mirror.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  actions: {
+    setMirror: function setMirror(ctx, payload) {
+      ctx.commit('updateMirror', payload);
+    },
+    setLabels: function setLabels(ctx, payload) {
+      ctx.commit('updateLabels', payload);
+    }
+  },
+  mutations: {
+    updateMirror: function updateMirror(state, data) {
+      var currentState = state[data.position];
+      state[data.position] = _objectSpread({}, currentState, {}, data.value);
+    },
+    updateLabels: function updateLabels(state, data) {
+      state.labels = data;
+    }
+  },
+  state: {
+    left: {},
+    right: {},
+    labels: []
+  },
+  getters: {
+    leftMirror: function leftMirror(state) {
+      return state.left;
+    },
+    rightMirror: function rightMirror(state) {
+      return state.right;
+    },
+    mirrorLabels: function mirrorLabels(state) {
+      return state.labels;
     }
   }
 });
