@@ -3603,6 +3603,11 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //
 //
 //
+//
+//
+//
+//
+//
 
 
 
@@ -3626,20 +3631,21 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             switch (_context.prev = _context.next) {
               case 0:
                 if (newValue) {
-                  _context.next = 3;
+                  _context.next = 4;
                   break;
                 }
 
                 _this.reset();
 
+                _this.loading = false;
                 return _context.abrupt("return");
 
-              case 3:
+              case 4:
                 _this.loading = true;
-                _context.next = 6;
+                _context.next = 7;
                 return _this.fetchData(newValue);
 
-              case 6:
+              case 7:
                 response = _context.sent;
 
                 if (response && response.status === 200) {
@@ -3665,7 +3671,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
                 _this.loading = false;
 
-              case 9:
+              case 10:
               case "end":
                 return _context.stop();
             }
@@ -3794,14 +3800,11 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //
 //
 //
-//
-//
-//
-//
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
+  props: ['mirrorDirection'],
   data: function data() {
     return {
       loading: true,
@@ -3815,9 +3818,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       }]
     };
   },
-  computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['mirrorLabels', 'leftMirror', 'rightMirror'])),
+  computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['ltrMirrorLabels', 'rtlMirrorLabels', 'leftMirror', 'rightMirror']), {
+    mirrorLabels: function mirrorLabels() {
+      return this.mirrorDirection === 'ltr' ? this.ltrMirrorLabels : this.rtlMirrorLabels;
+    }
+  }),
   watch: {
-    leftMirror: function leftMirror(newValue) {
+    leftMirror: function leftMirror() {
       var _this = this;
 
       return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
@@ -3825,18 +3832,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                if (!newValue.server) {
-                  _context.next = 4;
-                  break;
-                }
+                _this.setLabels();
 
-                _context.next = 3;
-                return _this.fetchLabels(newValue.server);
-
-              case 3:
-                _this.left = _context.sent;
-
-              case 4:
+              case 1:
               case "end":
                 return _context.stop();
             }
@@ -3844,7 +3842,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         }, _callee);
       }))();
     },
-    rightMirror: function rightMirror(newValue) {
+    rightMirror: function rightMirror() {
       var _this2 = this;
 
       return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee2() {
@@ -3852,18 +3850,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                if (!newValue.server) {
-                  _context2.next = 4;
-                  break;
-                }
+                _this2.setLabels();
 
-                _context2.next = 3;
-                return _this2.fetchLabels(newValue.server);
-
-              case 3:
-                _this2.right = _context2.sent;
-
-              case 4:
+              case 1:
               case "end":
                 return _context2.stop();
             }
@@ -3892,6 +3881,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
           }
         }, _callee3);
       }))();
+    },
+    left: function left() {
+      this.disableChecked();
     }
   },
   methods: {
@@ -3900,8 +3892,74 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         return response.data.data;
       });
     },
-    onLabelChange: function onLabelChange() {
+    setLabels: function () {
+      var _setLabels = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee4() {
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                this.labelsMap = [{
+                  id: 1,
+                  left_label_id: '',
+                  right_label_id: ''
+                }];
+                this.left = [];
+                this.right = [];
+
+                if (!(this.leftMirror.server && this.rightMirror.server)) {
+                  _context4.next = 10;
+                  break;
+                }
+
+                _context4.next = 6;
+                return this.fetchLabels(this.mirrorDirection === 'ltr' ? this.leftMirror.server : this.rightMirror.server);
+
+              case 6:
+                this.left = _context4.sent;
+                _context4.next = 9;
+                return this.fetchLabels(this.mirrorDirection === 'ltr' ? this.rightMirror.server : this.leftMirror.server);
+
+              case 9:
+                this.right = _context4.sent;
+
+              case 10:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function setLabels() {
+        return _setLabels.apply(this, arguments);
+      }
+
+      return setLabels;
+    }(),
+    onLabelChange: function onLabelChange(value) {
+      this.disableChecked(value[value.length - 1]);
       _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setLabels', this.labelsMap);
+    },
+    disableChecked: function disableChecked() {
+      var _this4 = this;
+
+      var checkedValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+      this.left.forEach(function (value) {
+        value.children = value.children.map(function (item, index) {
+          if (_this4.labelsMap.some(function (e) {
+            return e.left_label_id === item.value;
+          }) || checkedValue === item.value) {
+            return _objectSpread({}, item, {
+              disabled: true
+            });
+          } else {
+            return _objectSpread({}, item, {
+              disabled: false
+            });
+          }
+        });
+      });
+      console.log(this.left);
     },
     addRow: function addRow() {
       this.labelsMap.push({
@@ -3915,44 +3973,24 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
       if (this.labelsMap.length !== 1) {
         this.labelsMap.splice(index, 1);
+        this.disableChecked();
       }
     }
   },
   mounted: function () {
-    var _mounted = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee4() {
-      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee4$(_context4) {
+    var _mounted = _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee5() {
+      return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee5$(_context5) {
         while (1) {
-          switch (_context4.prev = _context4.next) {
+          switch (_context5.prev = _context5.next) {
             case 0:
-              if (!this.leftMirror.server) {
-                _context4.next = 4;
-                break;
-              }
+              this.setLabels();
 
-              _context4.next = 3;
-              return this.fetchLabels(this.leftMirror.server);
-
-            case 3:
-              this.left = _context4.sent;
-
-            case 4:
-              if (!this.rightMirror.server) {
-                _context4.next = 8;
-                break;
-              }
-
-              _context4.next = 7;
-              return this.fetchLabels(this.rightMirror.server);
-
-            case 7:
-              this.right = _context4.sent;
-
-            case 8:
+            case 1:
             case "end":
-              return _context4.stop();
+              return _context5.stop();
           }
         }
-      }, _callee4, this);
+      }, _callee5, this);
     }));
 
     function mounted() {
@@ -4070,7 +4108,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this2 = this;
 
       this.$http.get('/api/servers').then(function (response) {
-        console.log(response.data);
         _this2.servers = response.data.data;
       });
     },
@@ -4092,7 +4129,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
           _this3.projects = response.data.data;
         });
       } else {
-        return null;
+        this.projects = [];
       }
     }
   },
@@ -4536,7 +4573,6 @@ __webpack_require__.r(__webpack_exports__);
       this.$http.get('/api/servers/').then(function (response) {
         _this.servers = response.data.data;
         _store__WEBPACK_IMPORTED_MODULE_0__["store"].dispatch('finishLoading');
-        console.log(_store__WEBPACK_IMPORTED_MODULE_0__["store"]);
       });
     }
   },
@@ -101990,10 +102026,16 @@ var render = function() {
               _c("mirror-project-form", { attrs: { position: "right" } }),
               _vm._v(" "),
               _c("el-divider", { attrs: { "content-position": "left" } }, [
-                _c("h4", [_vm._v("Labels")])
+                _c("h4", [_vm._v("Left to Right Labels")])
               ]),
               _vm._v(" "),
-              _c("mirror-labels-form"),
+              _c("mirror-labels-form", { attrs: { mirrorDirection: "ltr" } }),
+              _vm._v(" "),
+              _c("el-divider", { attrs: { "content-position": "left" } }, [
+                _c("h4", [_vm._v("Right to Left Labels")])
+              ]),
+              _vm._v(" "),
+              _c("mirror-labels-form", { attrs: { mirrorDirection: "rtl" } }),
               _vm._v(" "),
               _c("el-divider"),
               _vm._v(" "),
@@ -102074,58 +102116,54 @@ var render = function() {
           [
             _c(
               "el-form-item",
-              { attrs: { label: "Left label" } },
+              {
+                attrs: {
+                  label:
+                    _vm.mirrorDirection === "ltr" ? "Left label" : "Right label"
+                }
+              },
               [
-                _c(
-                  "el-select",
-                  {
-                    attrs: { placeholder: "Select" },
-                    on: { change: _vm.onLabelChange },
-                    model: {
-                      value: label.left_label_id,
-                      callback: function($$v) {
-                        _vm.$set(label, "left_label_id", $$v)
-                      },
-                      expression: "label.left_label_id"
-                    }
+                _c("el-cascader", {
+                  attrs: {
+                    props: { expandTrigger: "hover", emitPath: false },
+                    options: _vm.left
                   },
-                  _vm._l(_vm.left, function(item) {
-                    return _c("el-option", {
-                      key: item.id,
-                      attrs: { label: item.name, value: item.id }
-                    })
-                  }),
-                  1
-                )
+                  on: { change: _vm.onLabelChange },
+                  model: {
+                    value: label.left_label_id,
+                    callback: function($$v) {
+                      _vm.$set(label, "left_label_id", $$v)
+                    },
+                    expression: "label.left_label_id"
+                  }
+                })
               ],
               1
             ),
             _vm._v(" "),
             _c(
               "el-form-item",
-              { attrs: { label: "Right label" } },
+              {
+                attrs: {
+                  label:
+                    _vm.mirrorDirection === "ltr" ? "Right label" : "Left label"
+                }
+              },
               [
-                _c(
-                  "el-select",
-                  {
-                    attrs: { placeholder: "Select" },
-                    on: { change: _vm.onLabelChange },
-                    model: {
-                      value: label.right_label_id,
-                      callback: function($$v) {
-                        _vm.$set(label, "right_label_id", $$v)
-                      },
-                      expression: "label.right_label_id"
-                    }
+                _c("el-cascader", {
+                  attrs: {
+                    props: { expandTrigger: "hover", emitPath: false },
+                    options: _vm.right
                   },
-                  _vm._l(_vm.right, function(item) {
-                    return _c("el-option", {
-                      key: item.id,
-                      attrs: { label: item.name, value: item.id }
-                    })
-                  }),
-                  1
-                )
+                  on: { change: _vm.onLabelChange },
+                  model: {
+                    value: label.right_label_id,
+                    callback: function($$v) {
+                      _vm.$set(label, "right_label_id", $$v)
+                    },
+                    expression: "label.right_label_id"
+                  }
+                })
               ],
               1
             ),
@@ -119629,7 +119667,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   state: {
     left: {},
     right: {},
-    labels: []
+    ltrLabelsMap: [{
+      id: 1,
+      left_label_id: '',
+      right_label_id: ''
+    }],
+    rtlLabelsMap: [{
+      id: 1,
+      left_label_id: '',
+      right_label_id: ''
+    }]
   },
   getters: {
     leftMirror: function leftMirror(state) {
@@ -119638,8 +119685,11 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     rightMirror: function rightMirror(state) {
       return state.right;
     },
-    mirrorLabels: function mirrorLabels(state) {
-      return state.labels;
+    ltrMirrorLabels: function ltrMirrorLabels(state) {
+      return state.ltrLabelsMap;
+    },
+    rtlMirrorLabels: function rtlMirrorLabels(state) {
+      return state.rtlLabelsMap;
     }
   }
 });

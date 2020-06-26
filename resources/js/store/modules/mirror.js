@@ -22,7 +22,16 @@ export default {
   state: {
     left: {},
     right: {},
-    labels: []
+    ltrLabelsMap: [{
+      id: 1,
+      left_label_id: '',
+      right_label_id: ''
+    }],
+    rtlLabelsMap: [{
+      id: 1,
+      left_label_id: '',
+      right_label_id: ''
+    }]
   },
   getters: {
     leftMirror (state) {
@@ -31,8 +40,11 @@ export default {
     rightMirror (state) {
       return state.right;
     },
-    mirrorLabels (state) {
-      return state.labels;
+    ltrMirrorLabels (state) {
+      return state.ltrLabelsMap;
+    },
+    rtlMirrorLabels (state) {
+      return state.rtlLabelsMap;
     }
   }
 }

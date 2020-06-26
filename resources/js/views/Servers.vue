@@ -62,8 +62,6 @@
           .then(response => {
             this.servers = response.data.data;
             store.dispatch('finishLoading');
-            console.log(store);
-            
           });
       }
     },

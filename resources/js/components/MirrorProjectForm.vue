@@ -61,7 +61,6 @@
       fetchServers: function () {
         this.$http.get('/api/servers')
           .then(response => {
-            console.log(response.data);
             this.servers = response.data.data;
           });
       },
@@ -82,7 +81,7 @@
               this.projects = response.data.data;
             });
         } else {
-          return null;
+          this.projects = []
         }
       }
     },

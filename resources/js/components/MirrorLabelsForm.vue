@@ -1,25 +1,21 @@
 <template>
   <el-form :inline="true" ref="mirrorForm" label-position="top">
     <div :key="label.id" v-for="label in labelsMap">
-      <el-form-item label="Left label">
-        <el-select @change="onLabelChange" v-model="label.left_label_id" placeholder="Select">
-          <el-option
-            v-for="item in left"
-            :key="item.id"
-            :label="item.name"
-            :value="item.id">
-          </el-option>
-        </el-select>
+      <el-form-item :label="mirrorDirection === 'ltr' ? 'Left label' : 'Right label'">
+        <el-cascader
+          @change="onLabelChange"
+          :props="{ expandTrigger: 'hover', emitPath: false }"
+          v-model="label.left_label_id"
+          :options="left">
+        </el-cascader>
       </el-form-item>
-      <el-form-item label="Right label">
-        <el-select @change="onLabelChange" v-model="label.right_label_id" placeholder="Select">
-          <el-option
-            v-for="item in right"
-            :key="item.id"
-            :label="item.name"
-            :value="item.id">
-          </el-option>
-        </el-select>
+      <el-form-item :label="mirrorDirection === 'ltr' ? 'Right label' : 'Left label'">
+        <el-cascader
+          @change="onLabelChange"
+          :props="{ expandTrigger: 'hover', emitPath: false }"
+          v-model="label.right_label_id"
+          :options="right">
+        </el-cascader>
       </el-form-item>
       <el-form-item style="vertical-align: bottom">
         <el-button @click="removeRow(label)" type="danger" icon="el-icon-delete" circle></el-button>
@@ -35,6 +31,7 @@
   import { Message } from 'element-ui';
 
   export default {
+    props: ['mirrorDirection'],
     data() {
       return {
         loading: true,
@@ -49,16 +46,17 @@
       };
     },
     computed: {
-      ...mapGetters(['mirrorLabels', 'leftMirror', 'rightMirror'])
+      ...mapGetters(['ltrMirrorLabels', 'rtlMirrorLabels', 'leftMirror', 'rightMirror']),
+      mirrorLabels: function () {
+        return this.mirrorDirection === 'ltr' ? this.ltrMirrorLabels : this.rtlMirrorLabels;
+      }
     },
     watch: {
-      async leftMirror(newValue) {
-        if (newValue.server)
-          this.left = await this.fetchLabels(newValue.server);
+      async leftMirror() {
+        this.setLabels();
       },
-      async rightMirror(newValue) {
-        if (newValue.server)
-          this.right = await this.fetchLabels(newValue.server);
+      async rightMirror() {
+        this.setLabels();
       },
       async mirrorLabels(newValue) {
         if (newValue.length)
@@ -70,6 +68,9 @@
             right_label_id: ''
           }];
       },
+      left () {
+        this.disableChecked();
+      }
     },
     methods: {
       fetchLabels: function (id) {
@@ -78,8 +79,40 @@
             return response.data.data;
         });
       },
-      onLabelChange: function () {
+      setLabels: async function () {
+        this.labelsMap = [{
+            id: 1,
+            left_label_id: '',
+            right_label_id: ''
+          }];
+        this.left = [];
+        this.right = [];
+        if (this.leftMirror.server && this.rightMirror.server) {
+          this.left = await this.fetchLabels(this.mirrorDirection === 'ltr' ? this.leftMirror.server : this.rightMirror.server);
+          this.right = await this.fetchLabels(this.mirrorDirection === 'ltr' ? this.rightMirror.server : this.leftMirror.server);
+        }
+      },
+      onLabelChange: function (value) {
+        this.disableChecked(value[value.length - 1]);
         store.dispatch('setLabels', this.labelsMap);
+      },
+      disableChecked: function (checkedValue = null) {
+        this.left.forEach(value => {
+          value.children = value.children.map((item, index) => {
+            if (this.labelsMap.some(e => e.left_label_id === item.value) || checkedValue === item.value) {
+              return {
+                ...item,
+                disabled: true
+              }
+            } else {
+              return {
+                ...item,
+                disabled: false
+              }
+            }
+          });
+        });
+        console.log(this.left);        
       },
       addRow() {
         this.labelsMap.push({
@@ -92,14 +125,12 @@
         var index = this.labelsMap.indexOf(item);
         if (this.labelsMap.length !== 1) {
           this.labelsMap.splice(index, 1);
+          this.disableChecked();
         }
       },
     },
     mounted: async function () {
-      if (this.leftMirror.server)
-        this.left = await this.fetchLabels(this.leftMirror.server);
-      if (this.rightMirror.server)
-        this.right = await this.fetchLabels(this.rightMirror.server);
+      this.setLabels();
     }
   };
 </script>

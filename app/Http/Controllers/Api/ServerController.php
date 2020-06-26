@@ -91,6 +91,14 @@ class ServerController extends Controller
 
     public function labels($id)
     {
-        return DefaultResource::collection(Server::find($id)->enumerations);
+        $labels = Server::find($id)->enumerations()->select(['type', 'id as value', 'name as label'])->get();
+        $labels = $labels->groupBy('type')->map(function ($item, $key) {
+            return [
+                'label' => $key ? $key : 'label',
+                'value' => $key ? $key : 'label',
+                'children' => $item
+            ];
+        })->values();
+        return DefaultResource::collection($labels);
     }
 }

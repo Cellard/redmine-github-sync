@@ -20,9 +20,14 @@
         <mirror-project-form  position="right"></mirror-project-form>
 
         <el-divider content-position="left">
-          <h4>Labels</h4>
+          <h4>Left to Right Labels</h4>
         </el-divider>
-        <mirror-labels-form></mirror-labels-form>
+        <mirror-labels-form mirrorDirection="ltr"></mirror-labels-form>
+
+        <el-divider content-position="left">
+          <h4>Right to Left Labels</h4>
+        </el-divider>
+        <mirror-labels-form mirrorDirection="rtl"></mirror-labels-form>
 
         <el-divider></el-divider>
         <div class="demo-drawer__footer">
@@ -55,6 +60,7 @@
       async drawlerData(newValue) {
         if (!newValue) {
           this.reset();
+          this.loading = false;
           return;
         }
         this.loading = true;
