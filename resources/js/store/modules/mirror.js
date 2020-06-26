@@ -16,7 +16,7 @@ export default {
       };
     },
     updateLabels (state, data) {
-      state.labels = data;
+      state[data.direction + 'LabelsMap'] = data.value;
     },
   },
   state: {

@@ -3619,7 +3619,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       formLoading: false
     };
   },
-  computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['drawlerVisibility', 'drawlerData', 'leftMirror', 'rightMirror', 'mirrorLabels'])),
+  computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['drawlerVisibility', 'drawlerData', 'leftMirror', 'rightMirror', 'ltrMirrorLabels', 'rtlMirrorLabels'])),
   watch: {
     drawlerData: function drawlerData(newValue) {
       var _this = this;
@@ -3664,7 +3664,14 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                       project: data.right.id
                     }
                   });
-                  _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setLabels', data.labels);
+                  _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setLabels', {
+                    direction: 'ltr',
+                    value: data.ltr_labels
+                  });
+                  _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setLabels', {
+                    direction: 'rtl',
+                    value: data.rtl_labels
+                  });
                 } else {
                   _this.reset();
                 }
@@ -3702,7 +3709,22 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
           project: ''
         }
       });
-      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setLabels', []);
+      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setLabels', {
+        direction: 'ltr',
+        value: [{
+          id: 1,
+          left_label_id: '',
+          right_label_id: ''
+        }]
+      });
+      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setLabels', {
+        direction: 'rtl',
+        value: [{
+          id: 1,
+          left_label_id: '',
+          right_label_id: ''
+        }]
+      });
     },
     submit: function submit(done) {
       var _this2 = this;
@@ -3712,7 +3734,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       this.$http[httpMethod](endpoint, {
         left: this.leftMirror,
         right: this.rightMirror,
-        labels: this.mirrorLabels
+        ltrLabelsMap: this.ltrMirrorLabels,
+        rtlLabelsMap: this.rtlMirrorLabels
       }).then(function (response) {
         element_ui__WEBPACK_IMPORTED_MODULE_3__["Message"].success('New server added.');
 
@@ -3938,7 +3961,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     }(),
     onLabelChange: function onLabelChange(value) {
       this.disableChecked(value[value.length - 1]);
-      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setLabels', this.labelsMap);
+      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setLabels', {
+        direction: this.mirrorDirection,
+        value: this.labelsMap
+      });
     },
     disableChecked: function disableChecked() {
       var _this4 = this;
@@ -3959,7 +3985,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
           }
         });
       });
-      console.log(this.left);
     },
     addRow: function addRow() {
       this.labelsMap.push({
@@ -119661,7 +119686,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       state[data.position] = _objectSpread({}, currentState, {}, data.value);
     },
     updateLabels: function updateLabels(state, data) {
-      state.labels = data;
+      state[data.direction + 'LabelsMap'] = data.value;
     }
   },
   state: {

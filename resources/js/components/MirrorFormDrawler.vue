@@ -54,7 +54,7 @@
       };
     },
     computed: {
-      ...mapGetters(['drawlerVisibility', 'drawlerData', 'leftMirror', 'rightMirror', 'mirrorLabels'])
+      ...mapGetters(['drawlerVisibility', 'drawlerData', 'leftMirror', 'rightMirror', 'ltrMirrorLabels', 'rtlMirrorLabels'])
     },
     watch: {
       async drawlerData(newValue) {
@@ -81,7 +81,14 @@
               project: data.right.id,
             }
           });
-          store.dispatch('setLabels', data.labels);
+          store.dispatch('setLabels', {
+            direction: 'ltr',
+            value: data.ltr_labels
+          });
+          store.dispatch('setLabels', {
+            direction: 'rtl',
+            value: data.rtl_labels
+          });
         } else {
           this.reset();
         }
@@ -110,7 +117,22 @@
             project: ''
           }
         });
-        store.dispatch('setLabels', []);
+        store.dispatch('setLabels', {
+          direction: 'ltr',
+          value: [{
+            id: 1,
+            left_label_id: '',
+            right_label_id: ''
+          }]
+        });
+        store.dispatch('setLabels', {
+          direction: 'rtl',
+          value: [{
+            id: 1,
+            left_label_id: '',
+            right_label_id: ''
+          }]
+        });
       },
       submit(done) {
         const endpoint = this.drawlerData ? '/api/mirrors/' + this.drawlerData : '/api/mirrors/';
@@ -118,7 +140,8 @@
         this.$http[httpMethod](endpoint, {
           left: this.leftMirror,
           right: this.rightMirror,
-          labels: this.mirrorLabels
+          ltrLabelsMap: this.ltrMirrorLabels,
+          rtlLabelsMap: this.rtlMirrorLabels,
         }).then(response => {
             Message.success('New server added.');
             this.$router.go();

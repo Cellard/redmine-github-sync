@@ -74,20 +74,10 @@ class MirrorController extends Controller
             'left_type' => 'App\Project',
             'left_id' => $request->left['project'],
             'right_type' => 'App\Project',
-            'right_id' => $request->right['project']
+            'right_id' => $request->right['project'],
+            'ltr_labels' => $request->ltrLabelsMap,
+            'rtl_labels' => $request->rtlLabelsMap
         ]);
-
-        $mirror->labels()->delete();
-        foreach ($request->labels as $label) {
-            if (isset($label['left_label_id']) && isset($label['right_label_id'])) {
-                $mirrorLabels[] = [
-                    'left_label_id' => $label['left_label_id'],
-                    'right_label_id' => $label['right_label_id']
-                ];
-            }
-        }
-
-        $mirror->labels()->createMany($mirrorLabels);
         return new DefaultResource($mirror);
     }
 

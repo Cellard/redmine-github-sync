@@ -41,7 +41,7 @@ class Push extends Command
             foreach ($syncingItem['issues'] as $issue) {
                 $connection = $syncingItem['project']->server->connect($issue->author);
                 try {
-                    $connection->pushIssue($issue, $syncingItem['project']);
+                    $connection->pushIssue($issue, $syncingItem['project'], $syncingItem['labelsMap']);
                 } catch (\Throwable $th) {
                     $this->error($th->getMessage());
                 }
@@ -61,11 +61,13 @@ class Push extends Command
         foreach ($mirrors as $mirror) {
             $syncingMap[] = [
                 'project' => $mirror->left,
-                'issues' => $mirror->left->issuesToPush($mirror->right)->get()
+                'issues' => $mirror->left->issuesToPush($mirror->right)->get(),
+                'labelsMap' => $mirror->ltr_labels
             ];
             $syncingMap[] = [
                 'project' => $mirror->right,
-                'issues' => $mirror->right->issuesToPush($mirror->left)->get()
+                'issues' => $mirror->right->issuesToPush($mirror->left)->get(),
+                'labelsMap' => $mirror->rtl_labels
             ];
         }
         return $syncingMap;

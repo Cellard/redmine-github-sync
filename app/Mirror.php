@@ -23,7 +23,14 @@ class Mirror extends Model
         'left_type',
         'left_id',
         'right_type',
-        'right_id'
+        'right_id',
+        'ltr_labels',
+        'rtl_labels'
+    ];
+
+    protected $casts = [
+        'ltr_labels' => 'array',
+        'rtl_labels' => 'array'
     ];
 
     protected $dates = ['synced_at'];

@@ -19,7 +19,6 @@ class MirrorResource extends JsonResource
 
         $data['left'] = DefaultResource::make($this->resource->left);
         $data['right'] = DefaultResource::make($this->resource->right);
-        $data['labels'] = DefaultResource::collection($this->resource->labels);
 
         return $data;
     }

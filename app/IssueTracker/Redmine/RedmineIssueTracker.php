@@ -14,6 +14,7 @@ use App\IssueTracker\Contracts\UserContract;
 use App\IssueTracker\Contracts\WithPriority;
 use App\IssueTracker\Contracts\WithStatus;
 use App\IssueTracker\Contracts\WithTracker;
+use App\Label as AppLabel;
 use App\SyncedIssue;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -179,6 +180,8 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
     {
         $params = [
             'project_id' => $project->id,
+            'status_id' => '*',
+            'include' => 'journals'
         ];
         if ($updatedDateTime) {
             $params['updated_on'] = ">={$updatedDateTime->toIso8601ZuluString()}";
@@ -204,7 +207,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
      * @param \App\Project $project
      * @return array
      */
-    public function pushIssue(\App\Issue $issue, \App\Project $project)
+    public function pushIssue(\App\Issue $issue, \App\Project $project, ?array $labels)
     {
         $syncedIssue = $project->syncedIssues()->where('issue_id', $issue->id)->first();
         $assigneId = $issue->assignee ? $project->server->credentials()->where('user_id', $issue->assignee->id)->first()['ext_id'] : null;
@@ -214,10 +217,19 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
             'project_id' => $project->ext_id,
             'assigned_to_id' => $assigneId,
             'author_id' => $this->getAccount()->id,
-            /*'tracker_id' => $issue->tracker()->ext_id,
-            'status_id' => $issue->status()->ext_id,
-            'priority_id' => $issue->priority()->ext_id,*/
         ];
+
+        if ($labels) {
+            if ($ext_id = $this->getLabelExtId($issue, $labels, 'tracker')) {
+                $attributes['tracker_id'] = $ext_id;
+            }
+            if ($ext_id = $this->getLabelExtId($issue, $labels, 'status')) {
+                $attributes['status_id'] = $ext_id;
+            }
+            if ($ext_id = $this->getLabelExtId($issue, $labels, 'priority')) {
+                $attributes['priority_id'] = $ext_id;
+            }
+        }
 
         if ($syncedIssue) {
             $result = $this->updateIssue($syncedIssue->ext_id, $attributes);
@@ -234,6 +246,30 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
         $issue->save();
         $issue->syncedIssues()->update(['updated_at' => $issue->updated_at]);
         return $result;
+    }
+
+    protected function getLabelExtId($issue, $labels, $type)
+    {
+        $label = $issue->enumerations()->where('type', $type)->first();
+        if ($label) {
+            $label = $this->findInLabels($label->id, $labels);
+            if ($label) {
+                return AppLabel::where([
+                    'id' => $label['right_label_id'],
+                    'type' => $type
+                ])->first()->ext_id;
+            }
+        }
+        return null;
+    }
+
+    protected function findInLabels($id, $labels)
+    {
+        foreach ($labels as $item) {
+            if ($item['left_label_id'] === $id) {
+                return $item;
+            }
+        }
     }
 
     /**

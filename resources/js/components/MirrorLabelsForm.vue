@@ -94,7 +94,7 @@
       },
       onLabelChange: function (value) {
         this.disableChecked(value[value.length - 1]);
-        store.dispatch('setLabels', this.labelsMap);
+        store.dispatch('setLabels', {direction: this.mirrorDirection, value: this.labelsMap});
       },
       disableChecked: function (checkedValue = null) {
         this.left.forEach(value => {
@@ -112,7 +112,6 @@
             }
           });
         });
-        console.log(this.left);        
       },
       addRow() {
         this.labelsMap.push({
