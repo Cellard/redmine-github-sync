@@ -25,7 +25,8 @@ class Mirror extends Model
         'right_type',
         'right_id',
         'ltr_labels',
-        'rtl_labels'
+        'rtl_labels',
+        'config'
     ];
 
     protected $casts = [

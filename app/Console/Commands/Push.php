@@ -61,12 +61,12 @@ class Push extends Command
         foreach ($mirrors as $mirror) {
             $syncingMap[] = [
                 'project' => $mirror->left,
-                'issues' => $mirror->left->issuesToPush($mirror->right)->get(),
+                'issues' => $mirror->config === 'ltr' ? [] : $mirror->left->issuesToPush($mirror->right)->get(),
                 'labelsMap' => $mirror->ltr_labels
             ];
             $syncingMap[] = [
                 'project' => $mirror->right,
-                'issues' => $mirror->right->issuesToPush($mirror->left)->get(),
+                'issues' => $mirror->config === 'rtl' ? [] : $mirror->right->issuesToPush($mirror->left)->get(),
                 'labelsMap' => $mirror->rtl_labels
             ];
         }

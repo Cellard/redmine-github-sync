@@ -3608,6 +3608,31 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -3619,7 +3644,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       formLoading: false
     };
   },
-  computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['drawlerVisibility', 'drawlerData', 'leftMirror', 'rightMirror', 'ltrMirrorLabels', 'rtlMirrorLabels'])),
+  computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['drawlerVisibility', 'drawlerData', 'leftMirror', 'rightMirror', 'config', 'ltrMirrorLabels', 'rtlMirrorLabels'])),
   watch: {
     drawlerData: function drawlerData(newValue) {
       var _this = this;
@@ -3672,6 +3697,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                     direction: 'rtl',
                     value: data.rtl_labels
                   });
+                  _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setConfig', data.config);
                 } else {
                   _this.reset();
                 }
@@ -3735,7 +3761,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         left: this.leftMirror,
         right: this.rightMirror,
         ltrLabelsMap: this.ltrMirrorLabels,
-        rtlLabelsMap: this.rtlMirrorLabels
+        rtlLabelsMap: this.rtlMirrorLabels,
+        config: this.config
       }).then(function (response) {
         element_ui__WEBPACK_IMPORTED_MODULE_3__["Message"].success('New server added.');
 
@@ -3756,6 +3783,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       return this.$http.get('/api/mirrors/' + id).then(function (response) {
         return response;
       });
+    },
+    onConfigChange: function onConfigChange(value) {
+      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setConfig', value);
     }
   },
   mounted: function mounted() {
@@ -102067,6 +102097,49 @@ var render = function() {
               _c("mirror-project-form", { attrs: { position: "right" } }),
               _vm._v(" "),
               _c("el-divider", { attrs: { "content-position": "left" } }, [
+                _c("h4", [_vm._v("Config")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "el-form",
+                { attrs: { inline: true, "label-position": "top" } },
+                [
+                  _c(
+                    "el-form-item",
+                    { attrs: { label: "Sync direction" } },
+                    [
+                      _c(
+                        "el-select",
+                        {
+                          attrs: { value: _vm.config, placeholder: "Select" },
+                          on: { change: _vm.onConfigChange }
+                        },
+                        [
+                          _c("el-option", {
+                            key: "both",
+                            attrs: { label: "Both", value: "both" }
+                          }),
+                          _vm._v(" "),
+                          _c("el-option", {
+                            key: "ltr",
+                            attrs: { label: "From left to right", value: "ltr" }
+                          }),
+                          _vm._v(" "),
+                          _c("el-option", {
+                            key: "rtl",
+                            attrs: { label: "From right to left", value: "rtl" }
+                          })
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c("el-divider", { attrs: { "content-position": "left" } }, [
                 _c("h4", [_vm._v("Left to Right Labels")])
               ]),
               _vm._v(" "),
@@ -119728,6 +119801,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     },
     setLabels: function setLabels(ctx, payload) {
       ctx.commit('updateLabels', payload);
+    },
+    setConfig: function setConfig(ctx, payload) {
+      ctx.commit('updateConfig', payload);
     }
   },
   mutations: {
@@ -119737,11 +119813,15 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     },
     updateLabels: function updateLabels(state, data) {
       state[data.direction + 'LabelsMap'] = data.value;
+    },
+    updateConfig: function updateConfig(state, value) {
+      state.config = value;
     }
   },
   state: {
     left: {},
     right: {},
+    config: 'both',
     ltrLabelsMap: [{
       id: 1,
       left_label_id: '',
@@ -119765,6 +119845,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     },
     rtlMirrorLabels: function rtlMirrorLabels(state) {
       return state.rtlLabelsMap;
+    },
+    config: function config(state) {
+      return state.config;
     }
   }
 });

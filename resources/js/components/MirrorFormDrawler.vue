@@ -20,6 +20,31 @@
         <mirror-project-form  position="right"></mirror-project-form>
 
         <el-divider content-position="left">
+          <h4>Config</h4>
+        </el-divider>
+        <el-form :inline="true" label-position="top">
+          <el-form-item label="Sync direction">
+            <el-select @change="onConfigChange" :value="config" placeholder="Select">
+              <el-option
+                key="both"
+                label="Both"
+                value="both">
+              </el-option>
+              <el-option
+                key="ltr"
+                label="From left to right"
+                value="ltr">
+              </el-option>
+              <el-option
+                key="rtl"
+                label="From right to left"
+                value="rtl">
+              </el-option>
+            </el-select>
+          </el-form-item>
+        </el-form>
+
+        <el-divider content-position="left">
           <h4>Left to Right Labels</h4>
         </el-divider>
         <mirror-labels-form mirrorDirection="ltr"></mirror-labels-form>
@@ -54,7 +79,15 @@
       };
     },
     computed: {
-      ...mapGetters(['drawlerVisibility', 'drawlerData', 'leftMirror', 'rightMirror', 'ltrMirrorLabels', 'rtlMirrorLabels'])
+      ...mapGetters([
+        'drawlerVisibility', 
+        'drawlerData', 
+        'leftMirror', 
+        'rightMirror', 
+        'config',
+        'ltrMirrorLabels', 
+        'rtlMirrorLabels'
+      ])
     },
     watch: {
       async drawlerData(newValue) {
@@ -89,6 +122,7 @@
             direction: 'rtl',
             value: data.rtl_labels
           });
+          store.dispatch('setConfig', data.config);
         } else {
           this.reset();
         }
@@ -142,6 +176,7 @@
           right: this.rightMirror,
           ltrLabelsMap: this.ltrMirrorLabels,
           rtlLabelsMap: this.rtlMirrorLabels,
+          config: this.config
         }).then(response => {
             Message.success('New server added.');
             this.$router.go();
@@ -161,6 +196,9 @@
             return response;
           });
       },
+      onConfigChange (value) {
+        store.dispatch('setConfig', value);
+      }
     },
     mounted() {
       this.$refs.drawer.closeDrawer = () => {

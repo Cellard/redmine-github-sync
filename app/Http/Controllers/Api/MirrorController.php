@@ -40,7 +40,8 @@ class MirrorController extends Controller
             'right_type' => 'App\Project',
             'right_id' => $request->right['project'],
             'ltr_labels' => $request->ltrLabelsMap,
-            'rtl_labels' => $request->rtlLabelsMap
+            'rtl_labels' => $request->rtlLabelsMap,
+            'config' => $request->config
         ]);
         return new DefaultResource($mirror);
     }
@@ -67,7 +68,8 @@ class MirrorController extends Controller
             'right_type' => 'App\Project',
             'right_id' => $request->right['project'],
             'ltr_labels' => $request->ltrLabelsMap,
-            'rtl_labels' => $request->rtlLabelsMap
+            'rtl_labels' => $request->rtlLabelsMap,
+            'config' => $request->config
         ]);
         return new DefaultResource($mirror);
     }

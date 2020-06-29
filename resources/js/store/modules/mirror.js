@@ -5,6 +5,9 @@ export default {
     },
     setLabels (ctx, payload) {
       ctx.commit('updateLabels', payload);
+    },
+    setConfig (ctx, payload) {
+      ctx.commit('updateConfig', payload);
     }
   },
   mutations: {
@@ -18,10 +21,14 @@ export default {
     updateLabels (state, data) {
       state[data.direction + 'LabelsMap'] = data.value;
     },
+    updateConfig (state, value) {
+      state.config = value;
+    },
   },
   state: {
     left: {},
     right: {},
+    config: 'both',
     ltrLabelsMap: [{
       id: 1,
       left_label_id: '',
@@ -45,6 +52,9 @@ export default {
     },
     rtlMirrorLabels (state) {
       return state.rtlLabelsMap;
+    },
+    config (state) {
+      return state.config;
     }
   }
 }
