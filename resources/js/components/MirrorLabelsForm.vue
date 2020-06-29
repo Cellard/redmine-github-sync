@@ -1,7 +1,7 @@
 <template>
   <el-form :inline="true" ref="mirrorForm" label-position="top">
     <div :key="label.id" v-for="label in labelsMap">
-      <el-form-item :label="mirrorDirection === 'ltr' ? 'Left label' : 'Right label'">
+      <el-form-item v-if="mirrorDirection === 'ltr'" label="Left label">
         <el-cascader
           @change="onLabelChange"
           :props="{ expandTrigger: 'hover', emitPath: false }"
@@ -9,11 +9,27 @@
           :options="left">
         </el-cascader>
       </el-form-item>
-      <el-form-item :label="mirrorDirection === 'ltr' ? 'Right label' : 'Left label'">
+      <el-form-item v-else label="Right label">
         <el-cascader
           @change="onLabelChange"
           :props="{ expandTrigger: 'hover', emitPath: false }"
           v-model="label.right_label_id"
+          :options="right">
+        </el-cascader>
+      </el-form-item>
+      <el-form-item v-if="mirrorDirection === 'ltr'" label="Right label">
+        <el-cascader
+          @change="onLabelChange"
+          :props="{ expandTrigger: 'hover', emitPath: false }"
+          v-model="label.right_label_id"
+          :options="right">
+        </el-cascader>
+      </el-form-item>
+      <el-form-item v-else label="Left label">
+        <el-cascader
+          @change="onLabelChange"
+          :props="{ expandTrigger: 'hover', emitPath: false }"
+          v-model="label.left_label_id"
           :options="right">
         </el-cascader>
       </el-form-item>

@@ -3823,6 +3823,22 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -102139,59 +102155,93 @@ var render = function() {
           "div",
           { key: label.id },
           [
-            _c(
-              "el-form-item",
-              {
-                attrs: {
-                  label:
-                    _vm.mirrorDirection === "ltr" ? "Left label" : "Right label"
-                }
-              },
-              [
-                _c("el-cascader", {
-                  attrs: {
-                    props: { expandTrigger: "hover", emitPath: false },
-                    options: _vm.left
-                  },
-                  on: { change: _vm.onLabelChange },
-                  model: {
-                    value: label.left_label_id,
-                    callback: function($$v) {
-                      _vm.$set(label, "left_label_id", $$v)
-                    },
-                    expression: "label.left_label_id"
-                  }
-                })
-              ],
-              1
-            ),
+            _vm.mirrorDirection === "ltr"
+              ? _c(
+                  "el-form-item",
+                  { attrs: { label: "Left label" } },
+                  [
+                    _c("el-cascader", {
+                      attrs: {
+                        props: { expandTrigger: "hover", emitPath: false },
+                        options: _vm.left
+                      },
+                      on: { change: _vm.onLabelChange },
+                      model: {
+                        value: label.left_label_id,
+                        callback: function($$v) {
+                          _vm.$set(label, "left_label_id", $$v)
+                        },
+                        expression: "label.left_label_id"
+                      }
+                    })
+                  ],
+                  1
+                )
+              : _c(
+                  "el-form-item",
+                  { attrs: { label: "Right label" } },
+                  [
+                    _c("el-cascader", {
+                      attrs: {
+                        props: { expandTrigger: "hover", emitPath: false },
+                        options: _vm.right
+                      },
+                      on: { change: _vm.onLabelChange },
+                      model: {
+                        value: label.right_label_id,
+                        callback: function($$v) {
+                          _vm.$set(label, "right_label_id", $$v)
+                        },
+                        expression: "label.right_label_id"
+                      }
+                    })
+                  ],
+                  1
+                ),
             _vm._v(" "),
-            _c(
-              "el-form-item",
-              {
-                attrs: {
-                  label:
-                    _vm.mirrorDirection === "ltr" ? "Right label" : "Left label"
-                }
-              },
-              [
-                _c("el-cascader", {
-                  attrs: {
-                    props: { expandTrigger: "hover", emitPath: false },
-                    options: _vm.right
-                  },
-                  on: { change: _vm.onLabelChange },
-                  model: {
-                    value: label.right_label_id,
-                    callback: function($$v) {
-                      _vm.$set(label, "right_label_id", $$v)
-                    },
-                    expression: "label.right_label_id"
-                  }
-                })
-              ],
-              1
-            ),
+            _vm.mirrorDirection === "ltr"
+              ? _c(
+                  "el-form-item",
+                  { attrs: { label: "Right label" } },
+                  [
+                    _c("el-cascader", {
+                      attrs: {
+                        props: { expandTrigger: "hover", emitPath: false },
+                        options: _vm.right
+                      },
+                      on: { change: _vm.onLabelChange },
+                      model: {
+                        value: label.right_label_id,
+                        callback: function($$v) {
+                          _vm.$set(label, "right_label_id", $$v)
+                        },
+                        expression: "label.right_label_id"
+                      }
+                    })
+                  ],
+                  1
+                )
+              : _c(
+                  "el-form-item",
+                  { attrs: { label: "Left label" } },
+                  [
+                    _c("el-cascader", {
+                      attrs: {
+                        props: { expandTrigger: "hover", emitPath: false },
+                        options: _vm.right
+                      },
+                      on: { change: _vm.onLabelChange },
+                      model: {
+                        value: label.left_label_id,
+                        callback: function($$v) {
+                          _vm.$set(label, "left_label_id", $$v)
+                        },
+                        expression: "label.left_label_id"
+                      }
+                    })
+                  ],
+                  1
+                ),
             _vm._v(" "),
             _c(
               "el-form-item",

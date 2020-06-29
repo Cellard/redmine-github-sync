@@ -33,23 +33,15 @@ class MirrorController extends Controller
      */
     public function store(Request $request)
     {
-        $mirrorLabels = [];
         $mirror = Mirror::create([
             'user_id' => Auth::id(),
             'left_type' => 'App\Project',
             'left_id' => $request->left['project'],
             'right_type' => 'App\Project',
-            'right_id' => $request->right['project']
+            'right_id' => $request->right['project'],
+            'ltr_labels' => $request->ltrLabelsMap,
+            'rtl_labels' => $request->rtlLabelsMap
         ]);
-
-        foreach ($request->labels as $label) {
-            $mirrorLabels[] = [
-                'left_label_id' => $label['left_label_id'],
-                'right_label_id' => $label['right_label_id']
-            ];
-        }
-
-        $mirror->labels()->createMany($mirrorLabels);
         return new DefaultResource($mirror);
     }
 
@@ -67,7 +59,6 @@ class MirrorController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $mirrorLabels = [];
         $mirror = Mirror::find($id);
         $mirror->update([
             'user_id' => Auth::id(),
