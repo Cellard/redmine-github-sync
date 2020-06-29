@@ -91,6 +91,11 @@ class Issue extends Model
         return $this->hasMany(SyncedIssue::class, 'issue_id', 'id');
     }
 
+    public function comments()
+    {
+        return $this->hasMany(IssueComment::class);
+    }
+
     /**
      * Return eloquient builder of issues linked to remote issues by 'ext_id' field
      *
@@ -108,6 +113,13 @@ class Issue extends Model
                 'ext_id' => $remoteIssueId,
                 'project_id' => $projectId
             ]);
+        });
+    }
+
+    public function commentsToPush(int $projectId)
+    {
+        return $this->comments()->whereDoesntHave('syncedComments', function ($query) use ($projectId) {
+            $query->where('project_id', $projectId);
         });
     }
 }

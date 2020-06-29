@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Issue;
+use App\IssueComment;
 use App\IssueTracker\Contracts\HasDates;
 use App\IssueTracker\Contracts\HasLabels;
 use App\IssueTracker\Contracts\HasPriority;
@@ -88,6 +89,12 @@ class Sync extends Command
             return null;
         }
 
+        if (count($remoteIssue->comments))
+        {
+            $this->info('comments');
+            $this->attachComments($issue, $remoteIssue->comments, $project);
+        }
+
         if ($remoteIssue->milestone) {
             $issue->milestone()->associate($remoteIssue->milestone->toLocal($project));
         }
@@ -125,6 +132,29 @@ class Sync extends Command
 
             default:
                 break;
+        }
+    }
+
+    protected function attachComments($issue, array $remoteComments, $project)
+    {
+        foreach ($remoteComments as $remoteComment) {
+            if (IssueComment::where('ext_id', $remoteComment['id'])->orWhereHas('syncedComments', function($query) use ($remoteComment) {
+                $query->where('ext_id', $remoteComment['id']);
+            })->first()) {
+                continue;
+            }
+            
+            $author = $remoteComment->author->toLocal($issue->project->server);
+            $comment = $issue->comments()->create([
+                'body' => $remoteComment['notes'],
+                'ext_id' => $remoteComment['id'],
+                'author_id' => $author->id,
+                'created_at' => $remoteComment['created_on']
+            ]);
+            $comment->syncedComments()->create([
+                'ext_id' => $remoteComment['id'],
+                'project_id' => $project->id
+            ]);
         }
     }
 

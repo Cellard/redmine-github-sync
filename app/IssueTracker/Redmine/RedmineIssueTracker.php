@@ -5,6 +5,7 @@ namespace App\IssueTracker\Redmine;
 
 use App\IssueTracker\Abstracts\IssueTracker;
 use App\IssueTracker\Abstracts\Label;
+use App\IssueTracker\Redmine\RedmineIssueComment;
 use App\IssueTracker\AccessException;
 use App\IssueTracker\Contracts\IssueContract;
 use App\IssueTracker\Contracts\LabelContract;
@@ -14,7 +15,6 @@ use App\IssueTracker\Contracts\UserContract;
 use App\IssueTracker\Contracts\WithPriority;
 use App\IssueTracker\Contracts\WithStatus;
 use App\IssueTracker\Contracts\WithTracker;
-use App\Label as AppLabel;
 use App\SyncedIssue;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -170,6 +170,23 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
     }
 
     /**
+     * @param $id
+     * @return 
+     */
+    public function getComments($id)
+    {
+        $comments = [];
+        $journals = (array)$this->client->issue->show((string)$id, ['include' => 'journals'])['issue']['journals'];
+        foreach ($journals as $item) {
+            if ($item['notes']) {
+                $item['user'] = $this->getUser($item['user']['id'])->toArray();
+                $comments[] = RedmineIssueComment::createFromRemote($item);
+            }
+        }
+        return $comments;
+    }
+
+    /**
      * Get project issue listing
      * @param ProjectContract $project
      * @param Carbon|null $updatedDateTime
@@ -180,8 +197,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
     {
         $params = [
             'project_id' => $project->id,
-            'status_id' => '*',
-            'include' => 'journals'
+            'status_id' => '*'
         ];
         if ($updatedDateTime) {
             $params['updated_on'] = ">={$updatedDateTime->toIso8601ZuluString()}";
@@ -191,6 +207,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
 
         foreach ($issues as $key => $value) {
             $value['author'] = $this->getUser($value['author']['id'])->toArray();
+            $value['comments'] = $this->getComments($value['id']);
             if (isset($value['assigned_to'])) {
                 $value['assigned_to'] = $this->getUser($value['assigned_to']['id'])->toArray();
             }
@@ -207,7 +224,7 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
      * @param \App\Project $project
      * @return array
      */
-    public function pushIssue(\App\Issue $issue, \App\Project $project, ?array $labels)
+    public function pushIssue(\App\Issue $issue, \App\Project $project, ?array $labelsMap)
     {
         $syncedIssue = $project->syncedIssues()->where('issue_id', $issue->id)->first();
         $assigneId = $issue->assignee ? $project->server->credentials()->where('user_id', $issue->assignee->id)->first()['ext_id'] : null;
@@ -219,14 +236,14 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
             'author_id' => $this->getAccount()->id,
         ];
 
-        if ($labels) {
-            if ($ext_id = $this->getLabelExtId($issue, $labels, 'tracker')) {
+        if ($labelsMap) {
+            if ($ext_id = $this->getLabelExtId($issue, $labelsMap, 'tracker')) {
                 $attributes['tracker_id'] = $ext_id;
             }
-            if ($ext_id = $this->getLabelExtId($issue, $labels, 'status')) {
+            if ($ext_id = $this->getLabelExtId($issue, $labelsMap, 'status')) {
                 $attributes['status_id'] = $ext_id;
             }
-            if ($ext_id = $this->getLabelExtId($issue, $labels, 'priority')) {
+            if ($ext_id = $this->getLabelExtId($issue, $labelsMap, 'priority')) {
                 $attributes['priority_id'] = $ext_id;
             }
         }
@@ -248,13 +265,28 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
         return $result;
     }
 
-    protected function getLabelExtId($issue, $labels, $type)
+    public function pushComment($comment, $remoteIssueId)
+    {
+        $this->updateIssue($remoteIssueId, ['notes' => $comment->body]);
+        $comments = $this->getComments($remoteIssueId);
+        return end($comments);
+    }
+
+    /**
+     * Get external matched label id
+     *
+     * @param \App\Issue $issue
+     * @param array $labelsMap
+     * @param string $type
+     * @return integer|null
+     */
+    protected function getLabelExtId(\App\Issue $issue, array $labelsMap, string $type)
     {
         $label = $issue->enumerations()->where('type', $type)->first();
         if ($label) {
-            $label = $this->findInLabels($label->id, $labels);
+            $label = $this->findInLabels($label->id, $labelsMap);
             if ($label) {
-                return AppLabel::where([
+                return \App\Label::where([
                     'id' => $label['right_label_id'],
                     'type' => $type
                 ])->first()->ext_id;
@@ -263,13 +295,21 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
         return null;
     }
 
-    protected function findInLabels($id, $labels)
+    /**
+     * Find matched label in labels map
+     *
+     * @param integer $id
+     * @param array $labelsMap
+     * @return array|null $item
+     */
+    protected function findInLabels(int $id, array $labelsMap)
     {
-        foreach ($labels as $item) {
+        foreach ($labelsMap as $item) {
             if ($item['left_label_id'] === $id) {
                 return $item;
             }
         }
+        return null;
     }
 
     /**

@@ -58,6 +58,8 @@ class Mirror extends Model
     {
         $left = $this->castToProject($this->left);
         $right = $this->castToProject($this->right);
+        $left['labelsMap'] = $this->rtl_labels;
+        $right['labelsMap'] = $this->ltr_labels;
 
         if ($left && $right) {
             return collect([$left, $right]);
