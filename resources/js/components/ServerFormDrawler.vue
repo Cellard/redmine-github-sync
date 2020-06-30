@@ -79,7 +79,7 @@
           const data = response.data.data;
           this.server.url = data.base_uri;
           this.server.driver = data.driver;
-          this.server.key = data.credential.api_key;
+          this.server.key = data.credential ? data.credential.api_key : '';
         } else {
           this.server = {}
         }

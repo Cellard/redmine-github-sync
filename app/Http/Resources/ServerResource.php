@@ -18,7 +18,7 @@ class ServerResource extends JsonResource
     {
         $data = parent::toArray($request);
 
-        $data['credential'] = DefaultResource::make($this->resource->credentials(Auth::user())->firstOrFail());
+        $data['credential'] = DefaultResource::make($this->resource->credentials(Auth::user())->first());
 
         return $data;
     }

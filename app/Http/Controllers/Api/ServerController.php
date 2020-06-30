@@ -8,8 +8,6 @@ use App\Http\Requests\StoreServer;
 use App\Http\Resources\DefaultResource;
 use App\Http\Resources\ServerResource;
 use App\Server;
-use App\User;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,9 +18,9 @@ class ServerController extends Controller
      * @param ApiRequest $request
      * @return JsonResource
      */
-    public function index(ApiRequest $request)
+    public function index()
     {
-        return DefaultResource::collection($request->user()->servers);
+        return ServerResource::collection(Server::all());
     }
 
     /**
@@ -33,10 +31,11 @@ class ServerController extends Controller
      */
     public function store(StoreServer $request)
     {
+        $parsedUrl = parse_url($request->url);
         $server = Server::create([
-            'id' => parse_url($request->url)['host'],
+            'id' => $parsedUrl['host'],
             'driver' => $request->driver,
-            'base_uri' => rtrim($request->url, '/')
+            'base_uri' => $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . '/'
         ]);
         $server->credentials()->create([
             'user_id' => Auth::id(),
@@ -60,11 +59,12 @@ class ServerController extends Controller
     public function update(StoreServer $request, $id)
     {
         $server = Server::find($id);
+        $parsedUrl = parse_url($request->url);
         $server->update([
             'driver' => $request->driver,
-            'base_uri' => rtrim($request->url, '/')
+            'base_uri' => $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . '/'
         ]);
-        $server->credentials()->update([
+        $server->credentials()->where('user_id', Auth::id())->update([
             'user_id' => Auth::id(),
             'api_key' => $request->api_key,
             'ext_id' => null,

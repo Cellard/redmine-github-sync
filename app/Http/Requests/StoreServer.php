@@ -14,7 +14,7 @@ class StoreServer extends FormRequest
     public function rules()
     {
         return [
-            'url' => 'required|regex:/^https?\:\/\/\w+(\.\w+)*(:[0-9]+)?\/?$/',
+            'url' => 'required|active_url',
             'driver' => 'required|string',
             'api_key' => 'required|string'
         ];

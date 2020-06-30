@@ -4334,7 +4334,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                   data = response.data.data;
                   _this.server.url = data.base_uri;
                   _this.server.driver = data.driver;
-                  _this.server.key = data.credential.api_key;
+                  _this.server.key = data.credential ? data.credential.api_key : '';
                 } else {
                   _this.server = {};
                 }
