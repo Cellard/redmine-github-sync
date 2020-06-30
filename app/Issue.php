@@ -96,8 +96,13 @@ class Issue extends Model
         return $this->hasMany(IssueComment::class);
     }
 
+    public function files()
+    {
+        return $this->hasMany(IssueFile::class);
+    }
+
     /**
-     * Return eloquient builder of issues linked to remote issues by 'ext_id' field
+     * Return eloquient builder of issues linked to remote issue by 'ext_id' field
      *
      * @param integer $remoteIssueId
      * @param integer $projectId
@@ -119,6 +124,13 @@ class Issue extends Model
     public function commentsToPush(int $projectId)
     {
         return $this->comments()->whereDoesntHave('syncedComments', function ($query) use ($projectId) {
+            $query->where('project_id', $projectId);
+        });
+    }
+
+    public function filesToPush(int $projectId)
+    {
+        return $this->files()->whereDoesntHave('syncedFiles', function ($query) use ($projectId) {
             $query->where('project_id', $projectId);
         });
     }

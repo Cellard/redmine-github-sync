@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateIssueCommentsTable extends Migration
+class CreateIssueFilesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,11 @@ class CreateIssueCommentsTable extends Migration
      */
     public function up()
     {
-        Schema::create('issue_comments', function (Blueprint $table) {
+        Schema::create('issue_files', function (Blueprint $table) {
             $table->id();
-            $table->text('body');
+            $table->string('name');
+            $table->string('path');
+            $table->text('description')->nullable();
             $table->integer('ext_id');
             $table->unsignedBigInteger('issue_id');
             $table->unsignedBigInteger('author_id');
@@ -32,6 +34,6 @@ class CreateIssueCommentsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('issue_comments');
+        Schema::dropIfExists('issue_files');
     }
 }

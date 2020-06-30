@@ -46,18 +46,41 @@ class Push extends Command
                     $this->error($th->getMessage());
                 }
                 foreach ($issue->commentsToPush($syncingItem['project']->id)->get() as $comment) {
-                    $connection = $syncingItem['project']->server->connect($comment->author);
-                    try {
-                        $result = $connection->pushComment($comment, $result['id']);
-                        $comment->syncedComments()->create([
-                            'ext_id' => $result['id'],
-                            'project_id' => $syncingItem['project']->id
-                        ]);
-                    } catch (\Throwable $th) {
-                        $this->error($th->getMessage());
-                    }
+                    $this->pushComment($comment, $syncingItem['project'], $result['id']);
+                }
+
+                foreach ($issue->filesToPush($syncingItem['project']->id)->get() as $file) {
+                    $this->pushFile($file, $syncingItem['project'], $result['id']);
                 }
             }
+        }
+    }
+
+    protected function pushComment($comment, $project, $issueId)
+    {
+        $connection = $project->server->connect($comment->author);
+        try {
+            $result = $connection->pushComment($comment, $issueId);
+            $comment->syncedComments()->create([
+                'ext_id' => $result['id'],
+                'project_id' => $project->id
+            ]);
+        } catch (\Throwable $th) {
+            $this->error($th->getMessage());
+        }
+    }
+
+    protected function pushFile($file, $project, $issueId)
+    {
+        $connection = $project->server->connect($file->author);
+        try {
+            $result = $connection->pushFile($file, $issueId);
+            $file->syncedFiles()->updateOrCreate(
+                ['ext_id' => $result['id']],
+                ['project_id' => $project->id]
+            );
+        } catch (\Throwable $th) {
+            $this->error($th->getMessage());
         }
     }
 

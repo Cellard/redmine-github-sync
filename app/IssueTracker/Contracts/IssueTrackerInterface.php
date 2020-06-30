@@ -5,6 +5,7 @@ namespace App\IssueTracker\Contracts;
 
 
 use App\IssueTracker\AccessException;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -42,7 +43,8 @@ interface IssueTrackerInterface
     /**
      * Get project issue listing
      * @param ProjectContract $project
+     * @param Carbon $updatedDateTime
      * @return Collection|IssueContract[]
      */
-    public function getIssues(ProjectContract $project);
+    public function getIssues(ProjectContract $project, Carbon $updatedDateTime);
 }
