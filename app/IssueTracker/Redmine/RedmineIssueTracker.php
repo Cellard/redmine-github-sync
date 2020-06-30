@@ -229,7 +229,9 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
             $value['author'] = $this->getUser($value['author']['id'])->toArray();
             $value['comments'] = $this->getComments($value['id']);
             $value['files'] = $this->getFiles($value['id']);
-            if (isset($value['assigned_to'])) {
+            if (isset($value['assigned_to']) && $value['assigned_to']['name'] !== '101media') {
+                $value['assigned_to'] = $this->getUser($value['assigned_to']['id'])->toArray();
+            } else if ($value['assigned_to']['name'] === '101media') {
                 $value['assigned_to'] = $this->getUser($value['assigned_to']['id'])->toArray();
             }
             $issues[$key] = RedmineIssue::createFromRemote($value, $project);

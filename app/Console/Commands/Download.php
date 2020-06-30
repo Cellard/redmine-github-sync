@@ -76,7 +76,7 @@ class Download extends Command
                 $credential->ext_id = $account->id;
                 $credential->error = null;
                 $credential->save();
-            } catch (AccessException $e) {
+            } catch (\Throwable $e) {
                 $credential->ext_id = null;
                 $credential->error = "{$e->getCode()}:{$e->getMessage()}";
                 $credential->save();

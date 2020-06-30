@@ -53,7 +53,7 @@ class Sync extends Command
             $syncedAt = Carbon::now()->subMinutes(5);
 
             foreach ($mirror->projects() as $project) {
-                $issues = $project->server->connect($mirror->user)->getIssues($project->contract(), $mirror->synced_at ?? $mirror->created_at);
+                $issues = $project->server->connect($mirror->user)->getIssues($project->contract(), $mirror->synced_at ?? $mirror->created_at->subDays(1));
                 foreach ($issues as $remoteIssue) {
                     try {
                         $this->updateOrCreateIssue($remoteIssue, $project);
