@@ -19,7 +19,7 @@ class CreateSyncedIssueComments extends Migration
             $table->unsignedBigInteger('project_id');
             $table->foreign('issue_comment_id')->references('id')->on('issue_comments');
             $table->foreign('project_id')->references('id')->on('projects');
-            $table->integer('ext_id');
+            $table->unsignedBigInteger('ext_id');
             $table->timestamps();
         });
     }

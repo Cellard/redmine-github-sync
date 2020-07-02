@@ -14,7 +14,8 @@ class CreateServersTable extends Migration
     public function up()
     {
         Schema::create('servers', function (Blueprint $table) {
-            $table->string('id')->primary();
+            $table->id();
+            $table->string('name');
             $table->string('driver');
             $table->string('base_uri');
             $table->timestamps();
