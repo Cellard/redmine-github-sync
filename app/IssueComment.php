@@ -21,4 +21,11 @@ class IssueComment extends Model
     {
         return $this->hasMany(SyncedIssueComment::class, 'issue_comment_id', 'id');
     }
+
+    public function queryByExternalId($extId)
+    {
+        return $this->where('ext_id', $extId)->orWhereHas('syncedComments', function($query) use ($extId) {
+            $query->where('ext_id', $extId);
+        });
+    }
 }

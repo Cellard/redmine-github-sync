@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Milestone;
 use App\Mirror;
 use App\Project;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 class Sync extends Command
@@ -41,11 +42,10 @@ class Sync extends Command
             $syncedAt = Carbon::now()->subMinutes(5);
 
             foreach ($mirror->projects() as $project) {
-                $connector = (new ConnectorFactory)->make($project->server, $mirror->user);
-                $connector->pullIssues($project, $mirror->synced_at ?? $mirror->created_at);
+                \App\Jobs\PullIssues::dispatch($project, $mirror);
             }
 
-            $mirror->synced_at = $syncedAt;
+            //$mirror->synced_at = $syncedAt;
             $mirror->save();
         }
     }
