@@ -13,8 +13,8 @@
         <el-cascader
           @change="onLabelChange"
           :props="{ expandTrigger: 'hover', emitPath: false }"
-          v-model="label.right_label_id"
-          :options="right">
+          v-model="label.left_label_id"
+          :options="left">
         </el-cascader>
       </el-form-item>
       <el-form-item v-if="mirrorDirection === 'ltr'" label="Right label">
@@ -29,7 +29,7 @@
         <el-cascader
           @change="onLabelChange"
           :props="{ expandTrigger: 'hover', emitPath: false }"
-          v-model="label.left_label_id"
+          v-model="label.right_label_id"
           :options="right">
         </el-cascader>
       </el-form-item>

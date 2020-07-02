@@ -39,26 +39,37 @@ class Push extends Command
 
         foreach ($syncingMap as $syncingItem) {
             foreach ($syncingItem['issues'] as $issue) {
-                $connection = $syncingItem['project']->server->connect($issue->author);
+                $project = $syncingItem['project'];
+                $mirror = $syncingItem['mirror'];
+                $labelsMap = $syncingItem['labelsMap'];
+                if ($issue->author->credentials()->where('server_id', $project->server_id)->first()) {
+                    $connection = $project->server->connect($issue->author);
+                } else {
+                    $connection = $project->server->connect($mirror->user);
+                }
                 try {
-                    $result = $connection->pushIssue($issue, $syncingItem['project'], $syncingItem['labelsMap']);
+                    $result = $connection->pushIssue($issue, $project, $labelsMap);
                 } catch (\Throwable $th) {
                     $this->error($th->getMessage());
                 }
-                foreach ($issue->commentsToPush($syncingItem['project']->id)->get() as $comment) {
-                    $this->pushComment($comment, $syncingItem['project'], $result['id']);
+                foreach ($issue->commentsToPush($project->id)->get() as $comment) {
+                    $this->pushComment($comment, $project, $result['id'], $mirror);
                 }
 
-                foreach ($issue->filesToPush($syncingItem['project']->id)->get() as $file) {
-                    $this->pushFile($file, $syncingItem['project'], $result['id']);
+                foreach ($issue->filesToPush($project->id)->get() as $file) {
+                    $this->pushFile($file, $project, $result['id'], $labelsMap);
                 }
             }
         }
     }
 
-    protected function pushComment($comment, $project, $issueId)
+    protected function pushComment($comment, $project, $issueId, $mirror)
     {
-        $connection = $project->server->connect($comment->author);
+        if ($comment->author->credentials()->where('server_id', $project->server_id)->first()) {
+            $connection = $project->server->connect($comment->author);
+        } else {
+            $connection = $project->server->connect($mirror->user);
+        }
         try {
             $result = $connection->pushComment($comment, $issueId);
             $comment->syncedComments()->create([
@@ -70,9 +81,13 @@ class Push extends Command
         }
     }
 
-    protected function pushFile($file, $project, $issueId)
+    protected function pushFile($file, $project, $issueId, $mirror)
     {
-        $connection = $project->server->connect($file->author);
+        if ($file->author->credentials()->where('server_id', $project->server_id)->first()) {
+            $connection = $project->server->connect($file->author);
+        } else {
+            $connection = $project->server->connect($mirror->user);
+        }
         try {
             $result = $connection->pushFile($file, $issueId);
             $file->syncedFiles()->updateOrCreate(
@@ -96,13 +111,15 @@ class Push extends Command
         foreach ($mirrors as $mirror) {
             $syncingMap[] = [
                 'project' => $mirror->left,
-                'issues' => $mirror->config === 'ltr' ? [] : $mirror->left->issuesToPush($mirror->right)->get(),
-                'labelsMap' => $mirror->rtl_labels
+                'issues' => $mirror->config === 'ltr' ? $mirror->left->issuesToPush()->get() : $mirror->left->issuesToPush($mirror->right)->get(),
+                'labelsMap' => $mirror->rtl_labels,
+                'mirror' => $mirror
             ];
             $syncingMap[] = [
                 'project' => $mirror->right,
-                'issues' => $mirror->config === 'rtl' ? [] : $mirror->right->issuesToPush($mirror->left)->get(),
-                'labelsMap' => $mirror->ltr_labels
+                'issues' => $mirror->config === 'rtl' ? $mirror->right->issuesToPush()->get() : $mirror->right->issuesToPush($mirror->left)->get(),
+                'labelsMap' => $mirror->ltr_labels,
+                'mirror' => $mirror
             ];
         }
         return $syncingMap;

@@ -16,10 +16,7 @@ class RedmineUser extends User
             $attributes['name'] = $attributes['firstname'];
         } else if (isset($attributes['name'])) {
             $attributes['name'] = $attributes['name'];
-        } else {
-            $attributes['name'] = 'unknown';
         }
-
 
         if (isset($attributes['mail']))
             $attributes['email'] = $attributes['mail'];

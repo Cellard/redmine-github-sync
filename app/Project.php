@@ -60,8 +60,14 @@ class Project extends Model
      * @param Project $project
      * @return Builder
      */
-    public function issuesToPush(Project $project): HasMany
+    public function issuesToPush(?Project $project = null): HasMany
     {
+        if (!$project) {
+            return $this->issues()->whereHas('syncedIssues', function ($query) {
+                $query->whereColumn('synced_issues.updated_at', '<', 'issues.updated_at');
+            });
+        }
+        
         $new = $this->issues()->whereDoesntHave('syncedIssues', function ($query) use ($project) {
             $query->where('project_id', $project->id);
         }); 

@@ -14,7 +14,6 @@ use App\IssueTracker\Contracts\LabelContract;
 use App\Milestone;
 use App\Mirror;
 use App\Project;
-use App\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
@@ -53,10 +52,10 @@ class Sync extends Command
             $syncedAt = Carbon::now()->subMinutes(5);
 
             foreach ($mirror->projects() as $project) {
-                $issues = $project->server->connect($mirror->user)->getIssues($project->contract(), $mirror->synced_at ?? $mirror->created_at->subDays(1));
+                $issues = $project->server->connect($mirror->user)->getIssues($project->contract(), $mirror->synced_at ?? $mirror->created_at);
                 foreach ($issues as $remoteIssue) {
                     try {
-                        $this->updateOrCreateIssue($remoteIssue, $project);
+                        $this->updateOrCreateIssue($remoteIssue, $project, $mirror);
                     } catch (\Throwable $th) {
                         $this->error($th->getMessage());
                     }
@@ -68,15 +67,20 @@ class Sync extends Command
         }
     }
 
-    protected function updateOrCreateIssue($remoteIssue, $project)
+    protected function updateOrCreateIssue($remoteIssue, $project, $mirror)
     {
         $author = $remoteIssue->author->toLocal($project->server);
+        if (isset($remoteIssue->assignee->name) && $remoteIssue->assignee->name === '101media') {
+            $assignee = $mirror->user;
+        } else if ($remoteIssue->assignee) {
+            $assignee = $remoteIssue->assignee->toLocal($project->server);
+        }
         $issue = (new Issue)->queryByRemote($remoteIssue->id, $project->id)->first();
         
         if ($issue && $issue->updated_at->lessThan(Carbon::parse($remoteIssue->updated_at))) {
             $issue->update([
-                'author_id' => $author->id,
                 'subject' => $remoteIssue->subject,
+                'assignee_id' => $assignee->id ?? null,
                 'description' => $remoteIssue->description
             ]);
         } else if (!$issue) {
@@ -84,8 +88,10 @@ class Sync extends Command
                 'ext_id' => $remoteIssue->id,
                 'project_id' => $project->id,
                 'author_id' => $author->id,
+                'assignee_id' => $assignee->id ?? null,
                 'subject' => $remoteIssue->subject,
-                'description' => $remoteIssue->description
+                'description' => $remoteIssue->description,
+                'updated_at' => Carbon::parse($remoteIssue->updated_at)
             ]);
         } else {
             return null;
@@ -107,16 +113,12 @@ class Sync extends Command
             $issue->milestone()->associate($remoteIssue->milestone->toLocal($project));
         }
 
-        if ($remoteIssue->assignee) {
-            $issue->assignee()->associate($remoteIssue->assignee->toLocal($project->server));
-        }
-
         if ($remoteIssue instanceof HasDates) {
             $issue->started_at = $remoteIssue->started_at;
             $issue->finished_at = $remoteIssue->finished_at;
         }
 
-        if ($issue->ext_id == $remoteIssue['id']) {
+        if ($issue->ext_id === $remoteIssue['id']) {
             $this->attachLabels($issue, $remoteIssue, $project);
         } else {
             $this->attachLabelsByLabelsMap($issue, $remoteIssue, $project);
@@ -149,25 +151,26 @@ class Sync extends Command
 
     protected function attachLabelsByLabelsMap($issue, $remoteIssue, $project)
     {
-        $issue->enumerations()->detach();
-
         switch (true) {
             case $remoteIssue instanceof HasStatus:
                 $status = $remoteIssue->status->toLocal($project->server, 'status');
                 $status = $this->findInLabels($status->id, $project->labelsMap);
                 if ($status) {
+                    $issue->enumerations()->detach($issue->status()->id);
                     $issue->enumerations()->attach($status['right_label_id']);
                 }
             case $remoteIssue instanceof HasTracker:
                 $tracker = $remoteIssue->tracker->toLocal($project->server, 'tracker');
                 $tracker = $this->findInLabels($tracker->id, $project->labelsMap);
                 if ($tracker) {
+                    $issue->enumerations()->detach($issue->tracker()->id);
                     $issue->enumerations()->attach($tracker['right_label_id']);
                 }
             case $remoteIssue instanceof HasPriority:
                 $priority = $remoteIssue->priority->toLocal($project->server, 'priority');
                 $priority = $this->findInLabels($priority->id, $project->labelsMap);
                 if ($priority) {
+                    $issue->enumerations()->detach($issue->priority()->id);
                     $issue->enumerations()->attach($priority['right_label_id']);
                 }
 

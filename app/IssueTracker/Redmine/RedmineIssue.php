@@ -17,11 +17,15 @@ class RedmineIssue extends Issue implements HasPriority, HasTracker, HasStatus, 
 {
     public static function createFromRemote(array $attributes, ProjectContract $project)
     {
+        if (isset($attributes['assigned_to'])) {
+            $attributes['assigned_to'] = RedmineUser::createFromRemote($attributes['assigned_to']);
+        }
+
         $attributes['started_at'] = $attributes['start_date'] ? Carbon::parse($attributes['start_date']) : null;
         $attributes['created_at'] = Carbon::parse($attributes['created_on']);
         $attributes['updated_at'] = Carbon::parse($attributes['updated_on']);
         $attributes['author'] = RedmineUser::createFromRemote($attributes['author']);
-        $attributes['assignee'] = isset($attributes['fixed_version']) ? RedmineUser::createFromRemote($attributes['assigned_to']) : null;
+        $attributes['assignee'] = $attributes['assigned_to'] ?? null;
         $attributes['tracker'] = Label::createFromRemote($attributes['tracker'], $project);
         $attributes['status'] = Label::createFromRemote($attributes['status'], $project);
         $attributes['priority'] = Label::createFromRemote($attributes['priority'], $project);

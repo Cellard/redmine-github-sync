@@ -64,6 +64,11 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function credentials()
+    {
+        return $this->hasMany(Credential::class);
+    }
+
     public function mirrors()
     {
         return $this->hasMany(Mirror::class);

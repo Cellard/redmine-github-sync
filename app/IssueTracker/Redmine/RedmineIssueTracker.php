@@ -231,8 +231,8 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
             $value['files'] = $this->getFiles($value['id']);
             if (isset($value['assigned_to']) && $value['assigned_to']['name'] !== '101media') {
                 $value['assigned_to'] = $this->getUser($value['assigned_to']['id'])->toArray();
-            } else if ($value['assigned_to']['name'] === '101media') {
-                $value['assigned_to'] = $this->getUser($value['assigned_to']['id'])->toArray();
+            } else if (isset($value['assigned_to']) && $value['assigned_to']['name'] === '101media') {
+                $value['assigned_to'] = RedmineUser::createFromRemote($value['assigned_to'])->toArray();
             }
             $issues[$key] = RedmineIssue::createFromRemote($value, $project);
         }
@@ -250,12 +250,12 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
     public function pushIssue(\App\Issue $issue, \App\Project $project, ?array $labelsMap)
     {
         $syncedIssue = $project->syncedIssues()->where('issue_id', $issue->id)->first();
-        $assigneId = $issue->assignee ? $project->server->credentials()->where('user_id', $issue->assignee->id)->first()['ext_id'] : null;
+        $assigne = $issue->assignee ? $project->server->credentials()->where('user_id', $issue->assignee->id)->first() : null;
         $attributes = [
             'subject' => $issue->subject,
             'description' => $issue->description,
             'project_id' => $project->ext_id,
-            'assigned_to_id' => $assigneId,
+            'assigned_to_id' => $assigne['ext_id'] ?? null,
             'author_id' => $this->getAccount()->id,
         ];
 

@@ -102257,15 +102257,15 @@ var render = function() {
                     _c("el-cascader", {
                       attrs: {
                         props: { expandTrigger: "hover", emitPath: false },
-                        options: _vm.right
+                        options: _vm.left
                       },
                       on: { change: _vm.onLabelChange },
                       model: {
-                        value: label.right_label_id,
+                        value: label.left_label_id,
                         callback: function($$v) {
-                          _vm.$set(label, "right_label_id", $$v)
+                          _vm.$set(label, "left_label_id", $$v)
                         },
-                        expression: "label.right_label_id"
+                        expression: "label.left_label_id"
                       }
                     })
                   ],
@@ -102305,11 +102305,11 @@ var render = function() {
                       },
                       on: { change: _vm.onLabelChange },
                       model: {
-                        value: label.left_label_id,
+                        value: label.right_label_id,
                         callback: function($$v) {
-                          _vm.$set(label, "left_label_id", $$v)
+                          _vm.$set(label, "right_label_id", $$v)
                         },
-                        expression: "label.left_label_id"
+                        expression: "label.right_label_id"
                       }
                     })
                   ],

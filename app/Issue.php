@@ -30,7 +30,14 @@ class Issue extends Model
 {
     protected $dates = ['started_at', 'finished_at'];
     protected $fillable = [
-        'project_id', 'ext_id', 'author_id', 'subject', 'description', 'created_at', 'updated_at'
+        'project_id', 
+        'ext_id', 
+        'author_id', 
+        'assignee_id',
+        'subject', 
+        'description', 
+        'created_at', 
+        'updated_at'
     ];
 
     public function project()
