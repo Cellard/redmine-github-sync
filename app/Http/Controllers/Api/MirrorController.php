@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ApiRequest;
-use App\Http\Requests\StoreServer;
 use App\Http\Resources\DefaultResource;
 use App\Http\Resources\MirrorResource;
 use App\Mirror;
@@ -82,6 +81,9 @@ class MirrorController extends Controller
      */
     public function destroy($id)
     {
-        //
+        Mirror::find($id)->delete();
+        return response()->json([
+            'message' => 'Mirror deleted'
+        ]);
     }
 }

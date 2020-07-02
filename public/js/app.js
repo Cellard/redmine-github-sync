@@ -3764,8 +3764,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         rtlLabelsMap: this.rtlMirrorLabels,
         config: this.config
       }).then(function (response) {
-        element_ui__WEBPACK_IMPORTED_MODULE_3__["Message"].success('New server added.');
-
         _this2.$router.go();
       })["catch"](function (error) {
         var data = error.response.data;
@@ -3880,11 +3878,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       direction: 'rtl',
       left: [],
       right: [],
-      labelsMap: [{
-        id: 1,
-        left_label_id: '',
-        right_label_id: ''
-      }]
+      labelsMap: []
     };
   },
   computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['ltrMirrorLabels', 'rtlMirrorLabels', 'leftMirror', 'rightMirror']), {
@@ -3937,11 +3931,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                if (newValue.length) _this3.labelsMap = newValue;else _this3.labelsMap = [{
-                  id: 1,
-                  left_label_id: '',
-                  right_label_id: ''
-                }];
+                if (newValue.length) _this3.labelsMap = newValue;else _this3.labelsMap = [];
 
               case 1:
               case "end":
@@ -3967,11 +3957,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                this.labelsMap = [{
-                  id: 1,
-                  left_label_id: '',
-                  right_label_id: ''
-                }];
+                this.labelsMap = [];
                 this.left = [];
                 this.right = [];
 
@@ -4041,11 +4027,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     },
     removeRow: function removeRow(item) {
       var index = this.labelsMap.indexOf(item);
-
-      if (this.labelsMap.length !== 1) {
-        this.labelsMap.splice(index, 1);
-        this.disableChecked();
-      }
+      this.labelsMap.splice(index, 1);
+      this.disableChecked();
     }
   },
   mounted: function () {
@@ -4371,8 +4354,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             driver: _this2.server.driver,
             api_key: _this2.server.key
           }).then(function (response) {
-            element_ui__WEBPACK_IMPORTED_MODULE_3__["Message"].success('New server added.');
-
             _this2.$router.go();
           })["catch"](function (error) {
             var data = error.response.data;
@@ -4539,6 +4520,10 @@ __webpack_require__.r(__webpack_exports__);
   name: 'Mirrors',
   data: function data() {
     return {
+      deleteDialog: {
+        visible: false,
+        mirrorId: null
+      },
       mirrors: [],
       drawlerVisible: false
     };
@@ -4554,11 +4539,24 @@ __webpack_require__.r(__webpack_exports__);
       var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
       _store__WEBPACK_IMPORTED_MODULE_0__["store"].dispatch('show', data);
     },
-    fetchData: function fetchData() {
+    deleteMirror: function deleteMirror(id) {
       var _this = this;
 
+      this.$confirm('This will permanently delete the mirror. Continue?', 'Warning', {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }).then(function () {
+        _this.$http["delete"]('/api/mirrors/' + id).then(function (response) {
+          _this.$router.go();
+        });
+      });
+    },
+    fetchData: function fetchData() {
+      var _this2 = this;
+
       this.$http.get('/api/mirrors/').then(function (response) {
-        _this.mirrors = response.data.data;
+        _this2.mirrors = response.data.data;
         _store__WEBPACK_IMPORTED_MODULE_0__["store"].dispatch('finishLoading');
       });
     }
@@ -4618,6 +4616,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'Servers',
@@ -4638,11 +4637,24 @@ __webpack_require__.r(__webpack_exports__);
       var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
       _store__WEBPACK_IMPORTED_MODULE_0__["store"].dispatch('show', data);
     },
-    fetchData: function fetchData() {
+    deleteServer: function deleteServer(id) {
       var _this = this;
 
+      this.$confirm('This will permanently delete the server. Continue?', 'Warning', {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }).then(function () {
+        _this.$http["delete"]('/api/servers/' + id).then(function (response) {
+          _this.$router.go();
+        });
+      });
+    },
+    fetchData: function fetchData() {
+      var _this2 = this;
+
       this.$http.get('/api/servers/').then(function (response) {
-        _this.servers = response.data.data;
+        _this2.servers = response.data.data;
         _store__WEBPACK_IMPORTED_MODULE_0__["store"].dispatch('finishLoading');
       });
     }
@@ -102085,19 +102097,19 @@ var render = function() {
             },
             [
               _c("el-divider", { attrs: { "content-position": "left" } }, [
-                _c("h4", [_vm._v("Left")])
+                _c("h5", [_vm._v("Left")])
               ]),
               _vm._v(" "),
               _c("mirror-project-form", { attrs: { position: "left" } }),
               _vm._v(" "),
               _c("el-divider", { attrs: { "content-position": "left" } }, [
-                _c("h4", [_vm._v("Right")])
+                _c("h5", [_vm._v("Right")])
               ]),
               _vm._v(" "),
               _c("mirror-project-form", { attrs: { position: "right" } }),
               _vm._v(" "),
               _c("el-divider", { attrs: { "content-position": "left" } }, [
-                _c("h4", [_vm._v("Config")])
+                _c("h5", [_vm._v("Config")])
               ]),
               _vm._v(" "),
               _c(
@@ -102106,7 +102118,7 @@ var render = function() {
                 [
                   _c(
                     "el-form-item",
-                    { attrs: { label: "Sync direction" } },
+                    { attrs: { label: "New issues sync direction" } },
                     [
                       _c(
                         "el-select",
@@ -102140,13 +102152,13 @@ var render = function() {
               ),
               _vm._v(" "),
               _c("el-divider", { attrs: { "content-position": "left" } }, [
-                _c("h4", [_vm._v("Left to Right Labels")])
+                _c("h5", [_vm._v("Left to Right Labels")])
               ]),
               _vm._v(" "),
               _c("mirror-labels-form", { attrs: { mirrorDirection: "ltr" } }),
               _vm._v(" "),
               _c("el-divider", { attrs: { "content-position": "left" } }, [
-                _c("h4", [_vm._v("Right to Left Labels")])
+                _c("h5", [_vm._v("Right to Left Labels")])
               ]),
               _vm._v(" "),
               _c("mirror-labels-form", { attrs: { mirrorDirection: "rtl" } }),
@@ -102339,6 +102351,7 @@ var render = function() {
       _c(
         "el-button",
         {
+          staticStyle: { "margin-bottom": "40px" },
           attrs: { type: "primary", icon: "el-icon-circle-plus", round: "" },
           on: { click: _vm.addRow }
         },
@@ -102871,6 +102884,20 @@ var render = function() {
                         }
                       },
                       [_vm._v("Edit")]
+                    ),
+                    _vm._v(" "),
+                    _c(
+                      "el-button",
+                      {
+                        staticStyle: { color: "#F56C6C" },
+                        attrs: { type: "text" },
+                        on: {
+                          click: function($event) {
+                            return _vm.deleteMirror(scope.row.id)
+                          }
+                        }
+                      },
+                      [_vm._v("Delete")]
                     )
                   ]
                 }
@@ -102976,6 +103003,20 @@ var render = function() {
                         }
                       },
                       [_vm._v("Edit")]
+                    ),
+                    _vm._v(" "),
+                    _c(
+                      "el-button",
+                      {
+                        staticStyle: { color: "#F56C6C" },
+                        attrs: { type: "text" },
+                        on: {
+                          click: function($event) {
+                            return _vm.deleteServer(scope.row.id)
+                          }
+                        }
+                      },
+                      [_vm._v("Delete")]
                     )
                   ]
                 }
@@ -119822,16 +119863,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     left: {},
     right: {},
     config: 'both',
-    ltrLabelsMap: [{
-      id: 1,
-      left_label_id: '',
-      right_label_id: ''
-    }],
-    rtlLabelsMap: [{
-      id: 1,
-      left_label_id: '',
-      right_label_id: ''
-    }]
+    ltrLabelsMap: [],
+    rtlLabelsMap: []
   },
   getters: {
     leftMirror: function leftMirror(state) {

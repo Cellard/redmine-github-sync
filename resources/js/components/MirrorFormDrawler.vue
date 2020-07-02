@@ -10,20 +10,20 @@
       ref="drawer">
       <div v-loading="loading" class="drawer__content">
         <el-divider content-position="left">
-          <h4>Left</h4>
+          <h5>Left</h5>
         </el-divider>
         <mirror-project-form position="left"></mirror-project-form>
 
         <el-divider content-position="left">
-          <h4>Right</h4>
+          <h5>Right</h5>
         </el-divider>
         <mirror-project-form  position="right"></mirror-project-form>
 
         <el-divider content-position="left">
-          <h4>Config</h4>
+          <h5>Config</h5>
         </el-divider>
         <el-form :inline="true" label-position="top">
-          <el-form-item label="Sync direction">
+          <el-form-item label="New issues sync direction">
             <el-select @change="onConfigChange" :value="config" placeholder="Select">
               <el-option
                 key="both"
@@ -45,12 +45,12 @@
         </el-form>
 
         <el-divider content-position="left">
-          <h4>Left to Right Labels</h4>
+          <h5>Left to Right Labels</h5>
         </el-divider>
         <mirror-labels-form mirrorDirection="ltr"></mirror-labels-form>
 
         <el-divider content-position="left">
-          <h4>Right to Left Labels</h4>
+          <h5>Right to Left Labels</h5>
         </el-divider>
         <mirror-labels-form mirrorDirection="rtl"></mirror-labels-form>
 
@@ -178,7 +178,6 @@
           rtlLabelsMap: this.rtlMirrorLabels,
           config: this.config
         }).then(response => {
-            Message.success('New server added.');
             this.$router.go();
         }).catch(error => {
           const data = error.response.data;

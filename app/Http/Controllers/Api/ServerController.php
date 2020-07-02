@@ -81,7 +81,10 @@ class ServerController extends Controller
      */
     public function destroy($id)
     {
-        //
+        Server::find($id)->delete();
+        return response()->json([
+            'message' => 'Server deleted'
+        ]);
     }
 
     public function projects($id)
@@ -91,7 +94,7 @@ class ServerController extends Controller
 
     public function labels($id)
     {
-        $labels = Server::find($id)->enumerations()->select(['type', 'id as value', 'name as label'])->get();
+        $labels = Server::find($id)->enumerations()->select(['type', 'id as value', 'name as label'])->orderBy('type')->get();
         $labels = $labels->groupBy('type')->map(function ($item, $key) {
             return [
                 'label' => $key ? $key : 'label',

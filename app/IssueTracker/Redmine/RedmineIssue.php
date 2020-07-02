@@ -22,6 +22,7 @@ class RedmineIssue extends Issue implements HasPriority, HasTracker, HasStatus, 
         }
 
         $attributes['started_at'] = $attributes['start_date'] ? Carbon::parse($attributes['start_date']) : null;
+        $attributes['finished_at'] = isset($attributes['due_date']) ? Carbon::parse($attributes['due_date']) : null;
         $attributes['created_at'] = Carbon::parse($attributes['created_on']);
         $attributes['updated_at'] = Carbon::parse($attributes['updated_on']);
         $attributes['author'] = RedmineUser::createFromRemote($attributes['author']);

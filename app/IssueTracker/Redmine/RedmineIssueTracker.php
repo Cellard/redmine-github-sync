@@ -256,6 +256,8 @@ class RedmineIssueTracker extends IssueTracker implements WithTracker, WithStatu
             'description' => $issue->description,
             'project_id' => $project->ext_id,
             'assigned_to_id' => $assigne['ext_id'] ?? null,
+            'start_date' => $issue->started_at,
+            'due_date' => $issue->finished_at,
             'author_id' => $this->getAccount()->id,
         ];
 

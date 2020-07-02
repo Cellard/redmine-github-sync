@@ -28,6 +28,7 @@
         width="120">
         <template slot-scope="scope">
           <el-button @click="showDrawler(scope.row.id)" type="text">Edit</el-button>
+          <el-button @click="deleteServer(scope.row.id)" style="color: #F56C6C" type="text">Delete</el-button>
         </template>
       </el-table-column>
 
@@ -56,6 +57,18 @@
     methods: {
       showDrawler: function (data = null) {
         store.dispatch('show', data);
+      },
+      deleteServer: function (id) {
+        this.$confirm('This will permanently delete the server. Continue?', 'Warning', {
+          confirmButtonText: 'OK',
+          cancelButtonText: 'Cancel',
+          type: 'warning'
+        }).then(() => {
+          this.$http.delete('/api/servers/' + id)
+          .then(response => {
+            this.$router.go();
+          });
+        });
       },
       fetchData: function () {
         this.$http.get('/api/servers/')

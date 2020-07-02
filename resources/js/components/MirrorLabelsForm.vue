@@ -37,7 +37,7 @@
         <el-button @click="removeRow(label)" type="danger" icon="el-icon-delete" circle></el-button>
       </el-form-item>
     </div>
-    <el-button @click="addRow" type="primary" icon="el-icon-circle-plus" round>Add</el-button>
+    <el-button style="margin-bottom: 40px" @click="addRow" type="primary" icon="el-icon-circle-plus" round>Add</el-button>
   </el-form>
 </template>
 
@@ -54,11 +54,7 @@
         direction: 'rtl',
         left: [],
         right: [],
-        labelsMap: [{
-          id: 1,
-          left_label_id: '',
-          right_label_id: ''
-        }]
+        labelsMap: []
       };
     },
     computed: {
@@ -78,11 +74,7 @@
         if (newValue.length)
           this.labelsMap = newValue;
         else
-          this.labelsMap = [{
-            id: 1,
-            left_label_id: '',
-            right_label_id: ''
-          }];
+          this.labelsMap = [];
       },
       left () {
         this.disableChecked();
@@ -96,11 +88,7 @@
         });
       },
       setLabels: async function () {
-        this.labelsMap = [{
-            id: 1,
-            left_label_id: '',
-            right_label_id: ''
-          }];
+        this.labelsMap = [];
         this.left = [];
         this.right = [];
         if (this.leftMirror.server && this.rightMirror.server) {
@@ -138,10 +126,8 @@
       },
       removeRow(item) {
         var index = this.labelsMap.indexOf(item);
-        if (this.labelsMap.length !== 1) {
-          this.labelsMap.splice(index, 1);
-          this.disableChecked();
-        }
+        this.labelsMap.splice(index, 1);
+        this.disableChecked();
       },
     },
     mounted: async function () {

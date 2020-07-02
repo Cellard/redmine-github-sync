@@ -29,16 +29,8 @@ export default {
     left: {},
     right: {},
     config: 'both',
-    ltrLabelsMap: [{
-      id: 1,
-      left_label_id: '',
-      right_label_id: ''
-    }],
-    rtlLabelsMap: [{
-      id: 1,
-      left_label_id: '',
-      right_label_id: ''
-    }]
+    ltrLabelsMap: [],
+    rtlLabelsMap: []
   },
   getters: {
     leftMirror (state) {

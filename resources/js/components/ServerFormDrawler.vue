@@ -104,7 +104,6 @@
               driver: this.server.driver,
               api_key: this.server.key
             }).then(response => {
-                Message.success('New server added.');
                 this.$router.go();
             }).catch(error => {
               const data = error.response.data;

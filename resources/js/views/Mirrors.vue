@@ -40,11 +40,11 @@
         width="120">
         <template slot-scope="scope">
           <el-button @click="showDrawler(scope.row.id)" type="text">Edit</el-button>
+          <el-button @click="deleteMirror(scope.row.id)" style="color: #F56C6C" type="text">Delete</el-button>
         </template>
       </el-table-column>
 
     </el-table>
-
   </div>
 </template>
 
@@ -55,6 +55,10 @@
     name: 'Mirrors',
     data() {
       return {
+        deleteDialog: {
+          visible: false,
+          mirrorId: null
+        },
         mirrors: [],
         drawlerVisible: false
       }
@@ -68,6 +72,18 @@
     methods: {
       showDrawler: function (data = null) {
         store.dispatch('show', data);
+      },
+      deleteMirror: function (id) {
+        this.$confirm('This will permanently delete the mirror. Continue?', 'Warning', {
+          confirmButtonText: 'OK',
+          cancelButtonText: 'Cancel',
+          type: 'warning'
+        }).then(() => {
+          this.$http.delete('/api/mirrors/' + id)
+          .then(response => {
+            this.$router.go();
+          });
+        });
       },
       fetchData: function () {
         this.$http.get('/api/mirrors/')
