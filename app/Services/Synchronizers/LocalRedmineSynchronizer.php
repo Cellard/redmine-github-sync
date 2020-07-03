@@ -17,9 +17,9 @@ use Illuminate\Support\Facades\Storage;
 
 class LocalRedmineSynchronizer {
 
-    private $client;
-    private $server;
-    private $mirror;
+    protected $client;
+    protected $server;
+    protected $mirror;
 
     public function __construct($server, $mirror)
     {
@@ -76,7 +76,7 @@ class LocalRedmineSynchronizer {
         }
     }
 
-    private function getIssues(Project $project, Carbon $issuesFromUpdatedAtDate): array
+    protected function getIssues(Project $project, Carbon $issuesFromUpdatedAtDate): array
     {
         return $this->client->issue->all([
             'project_id' => $project->ext_id,
@@ -85,7 +85,7 @@ class LocalRedmineSynchronizer {
         ])['issues'];
     }
 
-    private function updateOrCreateLocalIssue(array $issue, Project $project): void
+    protected function updateOrCreateLocalIssue(array $issue, Project $project): void
     {
         $localIssue = (new Issue)->queryByRemote($issue['id'], $project->id)->first();
         if ($localIssue && $localIssue->updated_at->lessThan(Carbon::parse($issue['updated_on']))) {
@@ -101,7 +101,7 @@ class LocalRedmineSynchronizer {
         $this->addFiles($issue, $localIssue);
     }
 
-    private function attachLabels(Issue $localIssue, array $issue, Project $project): void
+    protected function attachLabels(Issue $localIssue, array $issue, Project $project): void
     {
         $types = [
             'status',
@@ -126,7 +126,7 @@ class LocalRedmineSynchronizer {
         }
     }
 
-    private function updateOrCreateRemoteIssue(Issue $localIssue, Project $project): array
+    protected function updateOrCreateRemoteIssue(Issue $localIssue, Project $project): array
     {
         $syncedIssue = $project->syncedIssues()->where('issue_id', $localIssue->id)->first();
         $assigne = $localIssue->assignee ? $project->server->credentials()->where('user_id', $localIssue->assignee->id)->first() : null;
@@ -177,18 +177,18 @@ class LocalRedmineSynchronizer {
         return $response;
     }
 
-    private function updateRemoteIssue(int $id, array $attributes)
+    protected function updateRemoteIssue(int $id, array $attributes)
     {
         $this->client->issue->update($id, $attributes);
         return $this->client->issue->show($id)['issue'];
     }
 
-    private function createRemoteIssue(array $attributes)
+    protected function createRemoteIssue(array $attributes)
     {
         return (array)$this->client->issue->create($attributes);
     }
 
-    private function updateLocalIssue(array $issue, Issue $localIssue): Issue
+    protected function updateLocalIssue(array $issue, Issue $localIssue): Issue
     {
         $assignee = isset($issue['assigned_to']) ? $this->getUser($issue['assigned_to']['id']) : null;
         $localIssue->update([
@@ -199,7 +199,7 @@ class LocalRedmineSynchronizer {
         return $localIssue;
     }
 
-    private function createLocalIssue(array $issue, Project $project): Issue
+    protected function createLocalIssue(array $issue, Project $project): Issue
     {
         $assignee = isset($issue['assigned_to']) ? $this->getUser($issue['assigned_to']['id']) : null;
         $author = $this->getUser($issue['author']['id']);
@@ -214,13 +214,13 @@ class LocalRedmineSynchronizer {
         ]);
     }
 
-    private function getUser(int $id): User
+    protected function getUser(int $id): User
     {
         $user = $this->client->user->show($id)['user'];
         return $this->updateOrCreateUser($user);
     }
 
-    private function getAccount(): array
+    protected function getAccount(): array
     {
         $response = $this->client->user->getCurrentUser();
         if (isset($response['user'])) {
@@ -230,7 +230,7 @@ class LocalRedmineSynchronizer {
         }
     }
 
-    private function updateOrCreateUser(array $user): User
+    protected function updateOrCreateUser(array $user): User
     {
         if (isset($user['mail'])) {
             $localUser = User::firstOrCreate([
@@ -260,7 +260,7 @@ class LocalRedmineSynchronizer {
         return $localUser;
     }
 
-    private function getComments(int $id): array
+    protected function getComments(int $id): array
     {
         $comments = [];
         $journals = $this->client->issue->show($id, ['include' => 'journals'])['issue']['journals'];
@@ -273,7 +273,7 @@ class LocalRedmineSynchronizer {
         return $comments;
     }
 
-    private function addComments(array $issue, Issue $localIssue): void
+    protected function addComments(array $issue, Issue $localIssue): void
     {
         $comments = $this->getComments($issue['id']);
         foreach ($comments as $comment) {
@@ -292,7 +292,7 @@ class LocalRedmineSynchronizer {
         }
     }
 
-    private function pushComment(IssueComment $comment, Project $project, int $issueId): void
+    protected function pushComment(IssueComment $comment, Project $project, int $issueId): void
     {
         if ($credential = $comment->author->credentials()->where('server_id', $this->server->id)->first()) {
             $this->connect($credential->api_key);
@@ -312,7 +312,7 @@ class LocalRedmineSynchronizer {
         }
     }
 
-    private function getFiles(int $id): array
+    protected function getFiles(int $id): array
     {
         $files = [];
         $attachments = (array)$this->client->issue->show((string)$id, ['include' => 'attachments'])['issue']['attachments'];
@@ -324,7 +324,7 @@ class LocalRedmineSynchronizer {
         return $files;
     }
 
-    private function addFiles(array $issue, Issue $localIssue): void
+    protected function addFiles(array $issue, Issue $localIssue): void
     {
         $files = $this->getFiles($issue['id']);
         foreach ($files as $file) {
@@ -353,7 +353,7 @@ class LocalRedmineSynchronizer {
         }
     }
 
-    private function pushFile(IssueFile $file, Project $project, int $issueId): void
+    protected function pushFile(IssueFile $file, Project $project, int $issueId): void
     {
         if ($credential = $file->author->credentials()->where('server_id', $this->server->id)->first()) {
             $this->connect($credential->api_key);

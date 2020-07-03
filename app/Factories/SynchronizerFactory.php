@@ -7,7 +7,7 @@ class SynchronizerFactory
     public function make($server, $mirror)
     {
         if ($server->driver === 'redmine') {
-            if ($server->name === 'https://rm.fc-zenit.ru/') {
+            if ($server->base_uri === 'https://rm.fc-zenit.ru/') {
                 $classname = 'ZenitRedmineSynchronizer';
             } else {
                 $classname = 'LocalRedmineSynchronizer';

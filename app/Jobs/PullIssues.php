@@ -30,7 +30,7 @@ class PullIssues implements ShouldQueue
 
             foreach ($mirror->projects() as $project) {
                 $synchronizer = (new SynchronizerFactory)->make($project->server, $mirror);
-                $synchronizer->pullIssues($project, $mirror->synced_at ?? $mirror->created_at);
+                $synchronizer->pullIssues($project, $mirror->synced_at->subDays(5) ?? $mirror->created_at->subDays(5));
             }
 
             $mirror->synced_at = $syncedAt;
