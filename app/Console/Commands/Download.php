@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use App\Credential;
-use App\IssueTracker\AccessException;
 use App\IssueTracker\Contracts\IssueTrackerInterface;
 use App\IssueTracker\Contracts\ProjectContract;
 use App\IssueTracker\Contracts\WithLabels;
@@ -13,9 +12,7 @@ use App\IssueTracker\Contracts\WithTracker;
 use App\Label;
 use App\Milestone;
 use App\Project;
-use App\Server;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class Download extends Command

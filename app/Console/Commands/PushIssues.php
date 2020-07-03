@@ -4,21 +4,21 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
-class PullIssues extends Command
+class PushIssues extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'it:pull';
+    protected $signature = 'it:push';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Pull Issues';
+    protected $description = 'Push Issues';
 
     /**
      * Create a new command instance.
@@ -32,6 +32,6 @@ class PullIssues extends Command
 
     public function handle()
     {
-        \App\Jobs\PullIssues::dispatch();
+        \App\Jobs\PushIssues::dispatch();
     }
 }

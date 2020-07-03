@@ -54,6 +54,13 @@ class Project extends Model
         return $this->hasMany(Issue::class);
     }
 
+    public function queryIssuesToPush()
+    {
+        return $this->issues()->whereHas('syncedIssues', function ($query) {
+            $query->whereColumn('synced_issues.updated_at', '<', 'issues.updated_at');
+        });
+    }
+
     /**
      * Return HasMany relation of issues to push from mirror project
      *

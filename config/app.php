@@ -176,6 +176,8 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
+        App\Providers\IssueLabelsMapperServiceProvider::class
+
     ],
 
     /*
@@ -228,6 +230,7 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
 
+        'IssueLabelsMapper'   =>  App\Facades\IssueLabelsMapperFacade::class
     ],
 
 ];

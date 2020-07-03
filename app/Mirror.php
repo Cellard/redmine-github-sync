@@ -58,8 +58,6 @@ class Mirror extends Model
     {
         $left = $this->castToProject($this->left);
         $right = $this->castToProject($this->right);
-        $left['labelsMap'] = $this->rtl_labels;
-        $right['labelsMap'] = $this->ltr_labels;
 
         if ($left && $right) {
             return collect([$left, $right]);
@@ -110,5 +108,50 @@ class Mirror extends Model
     public function labels()
     {
         return $this->hasMany(MirrorLabel::class);
+    }
+
+    public function getLabelsMap($project)
+    {
+        if ($project->id === $this->left->id) {
+            return $this->ltr_labels;
+        } else if ($project->id === $this->right->id) {
+            return $this->ltr_labels;
+        }
+        throw new \Exception("Project is not included to mirror.");
+    }
+
+    public function getProjectPosition($project)
+    {
+        if ($project->id === $this->left->id) {
+            return 'left';
+        } else if ($project->id === $this->right->id) {
+            return 'right';
+        }
+        throw new \Exception("Project is not included to mirror.");
+    }
+
+    public function queryIssuesToPush($position)
+    {
+        $project = $position === 'left' ? $this->left : $this->right;
+        $mirrorProject = $position === 'left' ? $this->right : $this->left;
+
+        if ($this->config === 'ltr' && $position === 'left'
+        || $this->config === 'rtl' && $position === 'right') {
+            return $project->queryIssuesToPush();
+        }
+
+        $newIssuesQuery = $project->issues()->whereDoesntHave('syncedIssues', function ($query) use ($mirrorProject) {
+            $query->where('project_id', $mirrorProject->id);
+        }); 
+        $mirrorNewIssuesQuery = $mirrorProject->issues()->whereDoesntHave('syncedIssues', function ($query) use ($project) {
+            $query->where('project_id', $project->id);
+        }); 
+        $existsIssuesQuery = $project->queryIssuesToPush();
+        $mirrorExistsIssuesQuery = $mirrorProject->queryIssuesToPush();
+
+        return $mirrorExistsIssuesQuery
+            ->unionAll($existsIssuesQuery)
+            ->unionAll($mirrorNewIssuesQuery)
+            ->unionAll($newIssuesQuery);
     }
 }
