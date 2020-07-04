@@ -7,6 +7,7 @@
       :title="drawlerData ? leftMirror.server + ' - ' + rightMirror.server : 'New Mirror'"
       :visible.sync="drawlerVisibility"
       :direction="direction"
+      size="auto"
       ref="drawer">
       <div v-loading="loading" class="drawer__content">
         <el-divider content-position="left">

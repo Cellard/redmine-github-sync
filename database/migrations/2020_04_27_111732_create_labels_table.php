@@ -15,7 +15,7 @@ class CreateLabelsTable extends Migration
     {
         Schema::create('labels', function (Blueprint $table) {
             $table->id();
-            $table->string('server_id');
+            $table->unsignedBigInteger('server_id');
             $table->unsignedBigInteger('ext_id')->comment('external id');
             $table->string('type')->nullable();
             $table->string('name');

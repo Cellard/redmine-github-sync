@@ -10,7 +10,7 @@
     
     <el-table :data="servers" style="width: 100%">
 
-      <el-table-column label="Server" prop="id" width="200px"></el-table-column>
+      <el-table-column label="Name" prop="name" width="200px"></el-table-column>
 
       <el-table-column label="Driver" prop="driver" width="150px"></el-table-column>
 

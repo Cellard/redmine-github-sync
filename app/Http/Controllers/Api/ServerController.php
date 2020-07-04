@@ -33,7 +33,7 @@ class ServerController extends Controller
     {
         $parsedUrl = parse_url($request->url);
         $server = Server::create([
-            'id' => $parsedUrl['host'],
+            'name' => $request->name,
             'driver' => $request->driver,
             'base_uri' => $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . '/'
         ]);

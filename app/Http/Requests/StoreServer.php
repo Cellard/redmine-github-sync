@@ -14,6 +14,7 @@ class StoreServer extends FormRequest
     public function rules()
     {
         return [
+            'name' => 'required|string',
             'url' => 'required|active_url',
             'driver' => 'required|string',
             'api_key' => 'required|string'

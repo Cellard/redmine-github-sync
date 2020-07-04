@@ -17,7 +17,11 @@ class CreateMirrorsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->morphs('left');
+            $table->json('ltr_labels')->nullable();
             $table->morphs('right');
+            $table->json('rtl_labels')->nullable();
+            $table->string('config')->default('both');
+            $table->dateTime('synced_at')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();

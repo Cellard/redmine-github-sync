@@ -4,12 +4,16 @@
     <el-button @click="show()" style="margin-bottom: 10px" type="primary" icon="el-icon-circle-plus">Add server</el-button>
 
     <el-drawer
-      :title="drawlerData || 'New Server'"
+      :title="server.name || 'New Server'"
       :visible.sync="drawlerVisibility"
       :direction="direction"
+      size="auto"
       ref="drawer">
       <div v-loading="loading" class="drawer__content">
         <el-form :rules="rules" ref="serverForm" :model="server" label-position="top">
+          <el-form-item :error="errors.name ? errors.name[0] : ''" label="Name" prop="name">
+            <el-input v-model="server.name" autocomplete="off"></el-input>
+          </el-form-item>
           <el-form-item :error="errors.url ? errors.url[0] : ''" label="Url" prop="url">
             <el-input v-model="server.url" autocomplete="off"></el-input>
           </el-form-item>
@@ -50,11 +54,15 @@
         drivers: [],
         formLoading: false,
         server: {
+          name: '',
           url: '',
           driver: '',
           key: ''
         },
         rules: {
+          name: [
+            { required: true, message: 'Please input server name', trigger: 'blur' }
+          ],
           url: [
             { required: true, message: 'Please input server Url', trigger: 'blur' }
           ],
@@ -77,6 +85,7 @@
         const response = await this.fetchData(newValue);
         if (response && response.status === 200) {
           const data = response.data.data;
+          this.server.name = data.name;
           this.server.url = data.base_uri;
           this.server.driver = data.driver;
           this.server.key = data.credential ? data.credential.api_key : '';
@@ -100,6 +109,7 @@
             const endpoint = this.drawlerData ? '/api/servers/' + this.drawlerData : '/api/servers/';
             const httpMethod = this.drawlerData ? 'put' : 'post';
             this.$http[httpMethod](endpoint, {
+              name: this.server.name,
               url: this.server.url,
               driver: this.server.driver,
               api_key: this.server.key

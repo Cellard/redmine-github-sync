@@ -26,26 +26,16 @@ class Server extends Model
 {
     use SoftDeletes;
 
-    public static $drivers = [
-        'gogs', 'redmine'
+    const DRIVERS = [
+        'redmine',
+        'gogs'
     ];
 
-    protected $keyType = 'string';
-    public $incrementing = false;
-
-    protected $fillable = ['id', 'driver', 'base_uri'];
-
-    /**
-     * @param $name
-     * @return static
-     */
-    public static function find($name)
-    {
-        /** @var static $server */
-        $server = static::query()->whereKey($name)->firstOrFail();
-
-        return $server;
-    }
+    protected $fillable = [
+        'name', 
+        'driver', 
+        'base_uri'
+    ];
 
     /**
      * @param User|string $credentials

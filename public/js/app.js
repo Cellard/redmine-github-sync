@@ -3633,6 +3633,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //
 //
 //
+//
 
 
 
@@ -4260,6 +4261,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //
 //
 //
+//
+//
+//
+//
 
 
 
@@ -4271,11 +4276,17 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       drivers: [],
       formLoading: false,
       server: {
+        name: '',
         url: '',
         driver: '',
         key: ''
       },
       rules: {
+        name: [{
+          required: true,
+          message: 'Please input server name',
+          trigger: 'blur'
+        }],
         url: [{
           required: true,
           message: 'Please input server Url',
@@ -4315,6 +4326,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
                 if (response && response.status === 200) {
                   data = response.data.data;
+                  _this.server.name = data.name;
                   _this.server.url = data.base_uri;
                   _this.server.driver = data.driver;
                   _this.server.key = data.credential ? data.credential.api_key : '';
@@ -4350,6 +4362,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
           var httpMethod = _this2.drawlerData ? 'put' : 'post';
 
           _this2.$http[httpMethod](endpoint, {
+            name: _this2.server.name,
             url: _this2.server.url,
             driver: _this2.server.driver,
             api_key: _this2.server.key
@@ -102073,7 +102086,8 @@ var render = function() {
               ? _vm.leftMirror.server + " - " + _vm.rightMirror.server
               : "New Mirror",
             visible: _vm.drawlerVisibility,
-            direction: _vm.direction
+            direction: _vm.direction,
+            size: "auto"
           },
           on: {
             "update:visible": function($event) {
@@ -102511,9 +102525,10 @@ var render = function() {
         {
           ref: "drawer",
           attrs: {
-            title: _vm.drawlerData || "New Server",
+            title: _vm.server.name || "New Server",
             visible: _vm.drawlerVisibility,
-            direction: _vm.direction
+            direction: _vm.direction,
+            size: "auto"
           },
           on: {
             "update:visible": function($event) {
@@ -102547,6 +102562,30 @@ var render = function() {
                   }
                 },
                 [
+                  _c(
+                    "el-form-item",
+                    {
+                      attrs: {
+                        error: _vm.errors.name ? _vm.errors.name[0] : "",
+                        label: "Name",
+                        prop: "name"
+                      }
+                    },
+                    [
+                      _c("el-input", {
+                        attrs: { autocomplete: "off" },
+                        model: {
+                          value: _vm.server.name,
+                          callback: function($$v) {
+                            _vm.$set(_vm.server, "name", $$v)
+                          },
+                          expression: "server.name"
+                        }
+                      })
+                    ],
+                    1
+                  ),
+                  _vm._v(" "),
                   _c(
                     "el-form-item",
                     {
@@ -102956,7 +102995,7 @@ var render = function() {
         { staticStyle: { width: "100%" }, attrs: { data: _vm.servers } },
         [
           _c("el-table-column", {
-            attrs: { label: "Server", prop: "id", width: "200px" }
+            attrs: { label: "Name", prop: "name", width: "200px" }
           }),
           _vm._v(" "),
           _c("el-table-column", {

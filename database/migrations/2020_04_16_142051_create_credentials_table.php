@@ -16,7 +16,8 @@ class CreateCredentialsTable extends Migration
         Schema::create('credentials', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->string('server_id');
+            $table->unsignedBigInteger('server_id');
+            $table->string('username')->nullable();
             $table->string('api_key')->nullable();
             $table->unsignedBigInteger('ext_id')->nullable()->comment('external user');
             $table->string('error')->nullable();

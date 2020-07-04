@@ -4,10 +4,6 @@ namespace App\Providers;
 
 use App\Issue;
 use App\Observers\IssueObserver;
-use App\Observers\SyncedIssueObserver;
-use App\Observers\UserObserver;
-use App\SyncedIssue;
-use App\User;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,7 +25,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        User::observe(UserObserver::class);
         Issue::observe(IssueObserver::class);
     }
 }
