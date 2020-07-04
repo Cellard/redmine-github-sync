@@ -14,3 +14,4 @@ yarn-error.log
 /.idea
 /.editorconfig
 /.vscode
+_ide_helper.php

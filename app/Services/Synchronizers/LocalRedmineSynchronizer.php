@@ -374,7 +374,7 @@ class LocalRedmineSynchronizer {
                 ['project_id' => $project->id]
             );
         } catch (\Throwable $th) {
-            $this->error($th->getMessage());
+            dump($th->getMessage());
         }
     }
 }
