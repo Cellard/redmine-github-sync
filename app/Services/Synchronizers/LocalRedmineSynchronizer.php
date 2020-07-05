@@ -12,8 +12,10 @@ use App\Mirror;
 use App\Project;
 use IssueLabelsMapper;
 use App\User;
+use App\Log;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Log as FacadesLog;
 use Illuminate\Support\Facades\Storage;
 
 class LocalRedmineSynchronizer {
@@ -21,6 +23,7 @@ class LocalRedmineSynchronizer {
     protected $client;
     protected $server;
     protected $mirror;
+    protected $log;
 
     public function __construct($server)
     {
@@ -40,6 +43,15 @@ class LocalRedmineSynchronizer {
         $this->mirror = $mirror;
     }
 
+    protected function createLog(string $type)
+    {
+        $this->log = Log::create([
+            'mirror_id' => $this->mirror->id,
+            'type' => $type,
+            'status' => 'In process'
+        ]);
+    }
+
     public function pullIssues(
         Project $project, 
         Mirror $mirror, 
@@ -48,6 +60,7 @@ class LocalRedmineSynchronizer {
         ): void
     {
         $this->setMirror($mirror);
+        $this->createLog('Pull issues');
         $this->connect();
         $issues = $this->getIssues($project, $issuesUpdatedAtDate, $issuesCreatedAtDate);
         foreach ($issues as $issue) {
@@ -55,13 +68,25 @@ class LocalRedmineSynchronizer {
                 $this->updateOrCreateLocalIssue($issue, $project);
             } catch (\Throwable $th) {
                 dump($th->getMessage());
+                $message = "Error pulling to {$project->name} an issue \"{$issue['subject']}\": {$th->getMessage()}";
+                FacadesLog::error($message);
+                $this->log->errors()->create([
+                    'message' => $message
+                ]);
             }
         }
+        if (count($this->log->errors)) {
+            $this->log->status = 'Finished with errors';
+        } else {
+            $this->log->status = 'Success';
+        }
+        $this->log->save();
     }
 
     public function pushIssues(Collection $issuesToPush, Project $project, Mirror $mirror): void
     {
         $this->setMirror($mirror);
+        $this->createLog('Push issues');
         foreach ($issuesToPush as $localIssue) {
             try {
                 dump($project->name);
@@ -84,9 +109,20 @@ class LocalRedmineSynchronizer {
                 }
 
             } catch (\Throwable $th) {
-                dump($th->getMessage());
+                $message = "Error pushing to {$project->name} an issue \"{$localIssue->subject}\": {$th->getMessage()}";
+                FacadesLog::error($message);
+                $this->log->errors()->create([
+                    'message' => $message
+                ]);
             }
         }
+
+        if (count($this->log->errors)) {
+            $this->log->status = 'Finished with errors';
+        } else {
+            $this->log->status = 'Success';
+        }
+        $this->log->save();
     }
 
     protected function getIssues(Project $project, ?Carbon $issuesUpdatedAtDate, ?Carbon $issuesCreatedAtDate): array

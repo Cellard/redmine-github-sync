@@ -17,8 +17,8 @@ class CreateSyncedIssuesTable extends Migration
             $table->id();
             $table->unsignedBigInteger('issue_id');
             $table->unsignedBigInteger('project_id');
-            $table->foreign('issue_id')->references('id')->on('issues');
-            $table->foreign('project_id')->references('id')->on('projects');
+            $table->foreign('issue_id')->references('id')->on('issues')->onDelete('cascade');
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->integer('ext_id');
             $table->timestamps();
         });

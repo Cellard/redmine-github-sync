@@ -19,4 +19,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/servers/{id}/projects', 'Api\ServerController@projects');
     Route::get('/servers/{id}/labels', 'Api\ServerController@labels');
     Route::apiResource('mirrors', 'Api\MirrorController');
+    Route::apiResource('logs', 'Api\LogController')->only([
+        'index'
+    ]);
 });

@@ -17,8 +17,8 @@ class CreateSyncedIssueComments extends Migration
             $table->id();
             $table->unsignedBigInteger('issue_comment_id');
             $table->unsignedBigInteger('project_id');
-            $table->foreign('issue_comment_id')->references('id')->on('issue_comments');
-            $table->foreign('project_id')->references('id')->on('projects');
+            $table->foreign('issue_comment_id')->references('id')->on('issue_comments')->onDelete('cascade');
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->unsignedBigInteger('ext_id');
             $table->timestamps();
         });

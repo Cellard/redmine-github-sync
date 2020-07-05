@@ -21,8 +21,8 @@ class CreateIssueFilesTable extends Migration
             $table->integer('ext_id');
             $table->unsignedBigInteger('issue_id');
             $table->unsignedBigInteger('author_id');
-            $table->foreign('issue_id')->references('id')->on('issues');
-            $table->foreign('author_id')->references('id')->on('users');
+            $table->foreign('issue_id')->references('id')->on('issues')->onDelete('cascade');
+            $table->foreign('author_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

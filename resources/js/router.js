@@ -6,6 +6,11 @@ Vue.use(VueRouter);
 
 export const routes = [
   {
+    path: '/',
+    name: 'logs.index',
+    component: () => import('./views/Logs')
+  },
+  {
     path: '/servers',
     name: 'servers.index',
     component: () => import('./views/Servers')

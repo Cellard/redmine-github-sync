@@ -15,7 +15,7 @@ class AddOwnerIdToMirrors extends Migration
     {
         Schema::table('mirrors', function (Blueprint $table) {
             $table->unsignedBigInteger('owner_id')->after('user_id');
-            $table->foreign('owner_id')->references('id')->on('users');
+            $table->foreign('owner_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

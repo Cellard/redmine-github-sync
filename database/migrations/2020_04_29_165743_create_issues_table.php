@@ -28,8 +28,8 @@ class CreateIssuesTable extends Migration
             $table->boolean('open')->default(true);
             $table->timestamps();
 
-            $table->foreign('project_id')->references('id')->on('projects');
-            $table->foreign('milestone_id')->references('id')->on('milestones');
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
+            $table->foreign('milestone_id')->references('id')->on('milestones')->onDelete('cascade');
         });
     }
 
