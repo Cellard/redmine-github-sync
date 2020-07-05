@@ -25,7 +25,7 @@
         </el-divider>
         <el-form :inline="true" label-position="top">
           <el-form-item label="New issues sync direction">
-            <el-select @change="onConfigChange" :value="config" placeholder="Select">
+            <el-select v-model="config" placeholder="Select">
               <el-option
                 key="both"
                 label="Both"
@@ -42,6 +42,13 @@
                 value="rtl">
               </el-option>
             </el-select>
+          </el-form-item>
+          <el-form-item label="Start date">
+            <el-date-picker
+              v-model="startDate"
+              type="date"
+              placeholder="Pick a day">
+            </el-date-picker>
           </el-form-item>
         </el-form>
 
@@ -84,11 +91,26 @@
         'drawlerVisibility', 
         'drawlerData', 
         'leftMirror', 
-        'rightMirror', 
-        'config',
+        'rightMirror',
         'ltrMirrorLabels', 
         'rtlMirrorLabels'
-      ])
+      ]),
+      startDate: {
+        get(){
+          return store.getters.startDate
+        },
+        set(value){
+          store.dispatch('setStartDate', value);
+        } 
+      },
+      config: {
+        get(){
+          return store.getters.config
+        },
+        set(value){
+          store.dispatch('setConfig', value);
+        } 
+      }
     },
     watch: {
       async drawlerData(newValue) {
@@ -124,6 +146,7 @@
             value: data.rtl_labels
           });
           store.dispatch('setConfig', data.config);
+          store.dispatch('setStartDate', data.start_date);
         } else {
           this.reset();
         }
@@ -177,7 +200,8 @@
           right: this.rightMirror,
           ltrLabelsMap: this.ltrMirrorLabels,
           rtlLabelsMap: this.rtlMirrorLabels,
-          config: this.config
+          config: this.config,
+          startDate: this.startDate
         }).then(response => {
             this.$router.go();
         }).catch(error => {
@@ -195,9 +219,6 @@
           .then(response => {              
             return response;
           });
-      },
-      onConfigChange (value) {
-        store.dispatch('setConfig', value);
       }
     },
     mounted() {

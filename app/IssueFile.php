@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class IssueFile extends Model
 {
+    protected $touches = ['issue'];
     protected $fillable = [
         'name',
         'description',
@@ -22,6 +23,11 @@ class IssueFile extends Model
     public function syncedFiles()
     {
         return $this->hasMany(SyncedIssueFile::class, 'issue_file_id', 'id');
+    }
+
+    public function issue()
+    {
+        return $this->belongsTo(Issue::class);
     }
 
     public function queryByExternalId($extId)

@@ -2,6 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Project;
+use App\Milestone;
+use App\Mirror;
 use Illuminate\Console\Command;
 
 class PushIssues extends Command
@@ -32,6 +35,8 @@ class PushIssues extends Command
 
     public function handle()
     {
-        \App\Jobs\PushIssues::dispatch();
+        foreach (Mirror::onlyClass([Project::class, Milestone::class])->get() as $mirror) {
+            \App\Jobs\PushIssues::dispatch($mirror);
+        }
     }
 }

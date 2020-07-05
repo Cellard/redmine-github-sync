@@ -3634,6 +3634,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -3645,7 +3652,24 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       formLoading: false
     };
   },
-  computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['drawlerVisibility', 'drawlerData', 'leftMirror', 'rightMirror', 'config', 'ltrMirrorLabels', 'rtlMirrorLabels'])),
+  computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['drawlerVisibility', 'drawlerData', 'leftMirror', 'rightMirror', 'ltrMirrorLabels', 'rtlMirrorLabels']), {
+    startDate: {
+      get: function get() {
+        return _store__WEBPACK_IMPORTED_MODULE_1__["store"].getters.startDate;
+      },
+      set: function set(value) {
+        _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setStartDate', value);
+      }
+    },
+    config: {
+      get: function get() {
+        return _store__WEBPACK_IMPORTED_MODULE_1__["store"].getters.config;
+      },
+      set: function set(value) {
+        _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setConfig', value);
+      }
+    }
+  }),
   watch: {
     drawlerData: function drawlerData(newValue) {
       var _this = this;
@@ -3699,6 +3723,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                     value: data.rtl_labels
                   });
                   _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setConfig', data.config);
+                  _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setStartDate', data.start_date);
                 } else {
                   _this.reset();
                 }
@@ -3763,7 +3788,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         right: this.rightMirror,
         ltrLabelsMap: this.ltrMirrorLabels,
         rtlLabelsMap: this.rtlMirrorLabels,
-        config: this.config
+        config: this.config,
+        startDate: this.startDate
       }).then(function (response) {
         _this2.$router.go();
       })["catch"](function (error) {
@@ -3782,9 +3808,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       return this.$http.get('/api/mirrors/' + id).then(function (response) {
         return response;
       });
-    },
-    onConfigChange: function onConfigChange(value) {
-      _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setConfig', value);
     }
   },
   mounted: function mounted() {
@@ -102137,8 +102160,14 @@ var render = function() {
                       _c(
                         "el-select",
                         {
-                          attrs: { value: _vm.config, placeholder: "Select" },
-                          on: { change: _vm.onConfigChange }
+                          attrs: { placeholder: "Select" },
+                          model: {
+                            value: _vm.config,
+                            callback: function($$v) {
+                              _vm.config = $$v
+                            },
+                            expression: "config"
+                          }
                         },
                         [
                           _c("el-option", {
@@ -102158,6 +102187,24 @@ var render = function() {
                         ],
                         1
                       )
+                    ],
+                    1
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "el-form-item",
+                    { attrs: { label: "Start date" } },
+                    [
+                      _c("el-date-picker", {
+                        attrs: { type: "date", placeholder: "Pick a day" },
+                        model: {
+                          value: _vm.startDate,
+                          callback: function($$v) {
+                            _vm.startDate = $$v
+                          },
+                          expression: "startDate"
+                        }
+                      })
                     ],
                     1
                   )
@@ -119884,6 +119931,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     },
     setConfig: function setConfig(ctx, payload) {
       ctx.commit('updateConfig', payload);
+    },
+    setStartDate: function setStartDate(ctx, payload) {
+      console.log(payload);
+      ctx.commit('updateStartDate', payload);
     }
   },
   mutations: {
@@ -119896,12 +119947,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     },
     updateConfig: function updateConfig(state, value) {
       state.config = value;
+    },
+    updateStartDate: function updateStartDate(state, value) {
+      state.startDate = value;
     }
   },
   state: {
     left: {},
     right: {},
     config: 'both',
+    startDate: '',
     ltrLabelsMap: [],
     rtlLabelsMap: []
   },
@@ -119920,6 +119975,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     },
     config: function config(state) {
       return state.config;
+    },
+    startDate: function startDate(state) {
+      return state.startDate;
     }
   }
 });

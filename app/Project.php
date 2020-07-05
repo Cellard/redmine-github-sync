@@ -57,7 +57,8 @@ class Project extends Model
     public function queryIssuesToPush()
     {
         return $this->issues()->whereHas('syncedIssues', function ($query) {
-            $query->whereColumn('synced_issues.updated_at', '<', 'issues.updated_at');
+            $query->whereColumn('synced_issues.updated_at', '<', 'issues.updated_at')
+                ->where('project_id', $this->id);
         });
     }
 

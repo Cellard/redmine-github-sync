@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Mirror;
 use Illuminate\Console\Command;
 
 class PullIssues extends Command
@@ -32,6 +33,8 @@ class PullIssues extends Command
 
     public function handle()
     {
-        \App\Jobs\PullIssues::dispatch();
+        foreach (Mirror::all() as $mirror) {
+            \App\Jobs\PullIssues::dispatch($mirror);
+        }
     }
 }

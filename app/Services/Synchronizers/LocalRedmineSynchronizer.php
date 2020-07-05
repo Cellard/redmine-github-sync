@@ -8,6 +8,7 @@ use App\Issue;
 use App\IssueComment;
 use App\IssueFile;
 use App\IssueTracker\AccessException;
+use App\Mirror;
 use App\Project;
 use IssueLabelsMapper;
 use App\User;
@@ -21,13 +22,12 @@ class LocalRedmineSynchronizer {
     protected $server;
     protected $mirror;
 
-    public function __construct($server, $mirror)
+    public function __construct($server)
     {
         $this->server = $server;
-        $this->mirror = $mirror;
     }
 
-    public function connect(?string $apiKey = null): void
+    protected function connect(?string $apiKey = null): void
     {
         if (!$apiKey) {
             $apiKey = $this->mirror->user->credentials()->where('server_id', $this->server->id)->first()->api_key;
@@ -35,10 +35,21 @@ class LocalRedmineSynchronizer {
         $this->client = new \Redmine\Client($this->server->base_uri, $apiKey);
     }
 
-    public function pullIssues(Project $project, Carbon $issuesFromUpdatedAtDate): void
+    protected function setMirror(Mirror $mirror): void
     {
+        $this->mirror = $mirror;
+    }
+
+    public function pullIssues(
+        Project $project, 
+        Mirror $mirror, 
+        ?Carbon $issuesUpdatedAtDate, 
+        ?Carbon $issuesCreatedAtDate
+        ): void
+    {
+        $this->setMirror($mirror);
         $this->connect();
-        $issues = $this->getIssues($project, $issuesFromUpdatedAtDate);
+        $issues = $this->getIssues($project, $issuesUpdatedAtDate, $issuesCreatedAtDate);
         foreach ($issues as $issue) {
             try {
                 $this->updateOrCreateLocalIssue($issue, $project);
@@ -48,10 +59,12 @@ class LocalRedmineSynchronizer {
         }
     }
 
-    public function pushIssues(Collection $issuesToPush, Project $project): void
+    public function pushIssues(Collection $issuesToPush, Project $project, Mirror $mirror): void
     {
+        $this->setMirror($mirror);
         foreach ($issuesToPush as $localIssue) {
             try {
+                dump($project->name);
                 dump($localIssue->subject);
 
                 if ($credential = $localIssue->author->credentials()->where('server_id', $this->server->id)->first()) {
@@ -76,13 +89,31 @@ class LocalRedmineSynchronizer {
         }
     }
 
-    protected function getIssues(Project $project, Carbon $issuesFromUpdatedAtDate): array
+    protected function getIssues(Project $project, ?Carbon $issuesUpdatedAtDate, ?Carbon $issuesCreatedAtDate): array
     {
-        return $this->client->issue->all([
-            'project_id' => $project->ext_id,
-            'status_id' => '*',
-            'updated_on' => ">={$issuesFromUpdatedAtDate->toIso8601ZuluString()}"
-        ])['issues'];
+        $offset = 0;
+        $totalCount = 1;
+        $issues = [];
+        while ($totalCount > count($issues)) {
+            $params = [
+                'offset' => $offset,
+                'project_id' => $project->ext_id,
+                'status_id' => '*',
+            ];
+
+            if ($issuesUpdatedAtDate) {
+                $params['updated_on'] = ">={$issuesUpdatedAtDate->toIso8601ZuluString()}";
+            }
+            if ($issuesCreatedAtDate) {
+                $params['created_on'] = ">={$issuesCreatedAtDate->toIso8601ZuluString()}";
+            }
+
+            $response = $this->client->issue->all($params);
+            $offset += $response['limit'];
+            $totalCount = $response['total_count'];
+            $issues = array_merge($issues, $response['issues']);
+        }
+        return $issues;
     }
 
     protected function updateOrCreateLocalIssue(array $issue, Project $project): void
@@ -90,15 +121,22 @@ class LocalRedmineSynchronizer {
         $localIssue = (new Issue)->queryByRemote($issue['id'], $project->id)->first();
         if ($localIssue && $localIssue->updated_at->lessThan(Carbon::parse($issue['updated_on']))) {
             $localIssue = $this->updateLocalIssue($issue, $localIssue);
+            $localIssue->syncedIssues()->where('project_id', $project->id)->update([
+                'updated_at' => $localIssue->updated_at
+            ]);
+            $this->attachLabels($localIssue, $issue, $project);
         } else if (!$localIssue) {
             $localIssue = $this->createLocalIssue($issue, $project);
-        } else {
-            return;
+            $localIssue->syncedIssues()->create([
+                'project_id' => $localIssue->project->id,
+                'ext_id' => $localIssue->ext_id,
+                'updated_at' => $localIssue->updated_at,
+                'created_at' => $localIssue->created_at
+            ]);
+            $this->attachLabels($localIssue, $issue, $project);
         }
-
-        $this->attachLabels($localIssue, $issue, $project);
-        $this->addComments($issue, $localIssue);
-        $this->addFiles($issue, $localIssue);
+        $this->addComments($issue, $localIssue, $project);
+        $this->addFiles($issue, $localIssue, $project);
     }
 
     protected function attachLabels(Issue $localIssue, array $issue, Project $project): void
@@ -129,14 +167,17 @@ class LocalRedmineSynchronizer {
     protected function updateOrCreateRemoteIssue(Issue $localIssue, Project $project): array
     {
         $syncedIssue = $project->syncedIssues()->where('issue_id', $localIssue->id)->first();
-        $assigne = $localIssue->assignee ? $project->server->credentials()->where('user_id', $localIssue->assignee->id)->first() : null;
+        $assigne = $localIssue->assignee 
+            ? $project->server->credentials()->where('user_id', $localIssue->assignee->id)->first() 
+            : null;
+            
         $attributes = [
             'subject' => $localIssue->subject,
             'description' => $localIssue->description,
             'project_id' => $project->ext_id,
             'assigned_to_id' => $assigne['ext_id'] ?? null,
-            //'start_date' => $localIssue->started_at ? $localIssue->started_at->toIso8601ZuluString() : null,
-            //'due_date' => $localIssue->finished_at ? $localIssue->finished_at->toIso8601ZuluString() : null,
+            'start_date' => $localIssue->started_at ? $localIssue->started_at->toDateString() : null,
+            'due_date' => $localIssue->finished_at ? $localIssue->finished_at->toDateString() : null,
             'author_id' => $this->getAccount()['id']
         ];
 
@@ -172,8 +213,6 @@ class LocalRedmineSynchronizer {
                 'updated_at' => Carbon::parse($response['updated_on'])->setTimezone(config('app.timezone'))
             ]);
         }
-        $localIssue->updated_at = Carbon::parse($response['updated_on'])->setTimezone(config('app.timezone'));
-        $localIssue->save();
         return $response;
     }
 
@@ -193,8 +232,15 @@ class LocalRedmineSynchronizer {
         $assignee = isset($issue['assigned_to']) ? $this->getUser($issue['assigned_to']['id']) : null;
         $localIssue->update([
             'subject' => $issue['subject'],
+            'started_at' => isset($issue['start_date']) 
+                ? Carbon::parse($issue['start_date'])->setTimezone(config('app.timezone'))
+                : null,
+            'finished_at' => isset($issue['due_date']) 
+                ? Carbon::parse($issue['due_date'])->setTimezone(config('app.timezone')) 
+                : null,
             'assignee_id' => $assignee['id'] ?? null,
-            'description' => $issue['description'] ?? null
+            'description' => $issue['description'] ?? null,
+            'updated_at' => Carbon::parse($issue['updated_on'])->setTimezone(config('app.timezone'))
         ]);
         return $localIssue;
     }
@@ -210,7 +256,13 @@ class LocalRedmineSynchronizer {
             'assignee_id' => $assignee['id'] ?? null,
             'subject' => $issue['subject'],
             'description' => $issue['description'] ?? null,
-            'updated_at' => Carbon::parse($issue['updated_on'])
+            'started_at' => isset($issue['start_date']) 
+                ? Carbon::parse($issue['start_date'])->setTimezone(config('app.timezone'))
+                : null,
+            'finished_at' => isset($issue['due_date']) 
+                ? Carbon::parse($issue['due_date'])->setTimezone(config('app.timezone')) 
+                : null,
+            'updated_at' => Carbon::parse($issue['updated_on'])->setTimezone(config('app.timezone'))
         ]);
     }
 
@@ -232,32 +284,39 @@ class LocalRedmineSynchronizer {
 
     protected function updateOrCreateUser(array $user): User
     {
-        if (isset($user['mail'])) {
-            $localUser = User::firstOrCreate([
-                'email' => $user['mail']
-            ], [
-                'name' => $user['login'] ?? $user['firstname'] ?? null,
-                'email_verified_at' => Carbon::now(),
-                'password' => Str::random(64)
-            ]);
-        } else {
-            $localUser = User::create([
-                'email' => $user['mail'] ?? null,
-                'name' => $user['login'] ?? $user['firstname'] ?? $user['id'] . $this->server->base_url,
-                'email_verified_at' => Carbon::now(),
-                'password' => Str::random(64)
-            ]);
-        }
-
-        Credential::updateOrCreate([
-            'user_id' => $localUser->id,
+        $credential = Credential::updateOrCreate([
+            'ext_id' => $user['id'],
             'server_id' => $this->server->id
         ],
         [
             'ext_id' => $user['id'],
             'username' => $user['login'] ?? null
         ]);
-        return $localUser;
+
+        if ($credential->user) {
+            $credential->user->update([
+                'email' => $user['mail'] ?? null,
+                'name' => $user['login'] ?? 
+                    $user['firstname'] . ' ' . ($user['lastname'] ?? '') 
+                    ?? $user['id'] . $this->server->base_url,
+                'email_verified_at' => Carbon::now(),
+                'password' => Str::random(64)
+            ]);
+            $user = $credential->user;
+        } else {
+            $user = $credential->user()->create([
+                'email' => $user['mail'] ?? null,
+                'name' => $user['login'] ?? 
+                    $user['firstname'] . ' ' . ($user['lastname'] ?? '') 
+                    ?? $user['id'] . $this->server->base_url,
+                'email_verified_at' => Carbon::now(),
+                'password' => Str::random(64)
+            ]);
+            $credential->user_id = $user->id;
+            $credential->save();
+        }
+
+        return $user;
     }
 
     protected function getComments(int $id): array
@@ -273,7 +332,7 @@ class LocalRedmineSynchronizer {
         return $comments;
     }
 
-    protected function addComments(array $issue, Issue $localIssue): void
+    protected function addComments(array $issue, Issue $localIssue, Project $project): void
     {
         $comments = $this->getComments($issue['id']);
         foreach ($comments as $comment) {
@@ -286,7 +345,7 @@ class LocalRedmineSynchronizer {
                 ]);
                 $localComment->syncedComments()->create([
                     'ext_id' => $comment['id'],
-                    'project_id' => $localIssue->project_id
+                    'project_id' => $project->id
                 ]);
             }
         }
@@ -298,6 +357,7 @@ class LocalRedmineSynchronizer {
             $this->connect($credential->api_key);
         } else {
             $this->connect();
+            $comment->body = $comment->body .   "\nАвтор комментария: " . $comment->author->name;
         }
 
         try {
@@ -317,14 +377,14 @@ class LocalRedmineSynchronizer {
         $files = [];
         $attachments = (array)$this->client->issue->show((string)$id, ['include' => 'attachments'])['issue']['attachments'];
         foreach ($attachments as $item) {
-            $item['content'] = $this->client->attachment->download($id);
+            $item['content'] = $this->client->attachment->download($item['id']);
             $item['author'] = $this->getUser($item['author']['id']);
             $files[] = $item;
         }
         return $files;
     }
 
-    protected function addFiles(array $issue, Issue $localIssue): void
+    protected function addFiles(array $issue, Issue $localIssue, Project $project): void
     {
         $files = $this->getFiles($issue['id']);
         foreach ($files as $file) {
@@ -335,9 +395,9 @@ class LocalRedmineSynchronizer {
                     'description' => $file['description']
                 ]);
             } else {
-                $path = '/files/' . $file['filename'];
+                $path = 'files/' . uniqid(). $file['filename'];
                 Storage::disk('local')->put($path, $file['content']);
-                $file = $localIssue->files()->create([
+                $localFile = $localIssue->files()->create([
                     'name' => $file['filename'],
                     'description' => $file['description'],
                     'path' => $path,
@@ -345,9 +405,9 @@ class LocalRedmineSynchronizer {
                     'author_id' => $file['author']->id,
                     'created_at' => $file['created_on']
                 ]);
-                $file->syncedFiles()->create([
+                $localFile->syncedFiles()->create([
                     'ext_id' => $file['id'],
-                    'project_id' => $localIssue->project->id
+                    'project_id' => $project->id
                 ]);
             }
         }
@@ -362,13 +422,13 @@ class LocalRedmineSynchronizer {
         }
 
         try {
-            $response = json_decode($this->client->attachment->upload(Storage::get($file->path)), true);
+            $response = json_decode($this->client->attachment->upload(Storage::path($file->path)), true);
             $this->client->issue->attach($issueId, [
                 'token' => $response['upload']['token'], 
                 'filename' => $file->name, 
                 'description' => $file->description
             ]);
-            $files = $this->getComments($issueId);
+            $files = $this->getFiles($issueId);
             $file->syncedFiles()->updateOrCreate(
                 ['ext_id' => end($files)['id']],
                 ['project_id' => $project->id]

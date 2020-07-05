@@ -4,7 +4,7 @@ namespace App\Factories;
 
 class SynchronizerFactory
 {
-    public function make($server, $mirror)
+    public function make($server)
     {
         if ($server->driver === 'redmine') {
             if ($server->base_uri === 'https://rm.fc-zenit.ru/') {
@@ -18,9 +18,9 @@ class SynchronizerFactory
 
         $classname = 'App\Services\Synchronizers\\'.ucfirst($classname);
         if (class_exists($classname)) {
-            return (new \ReflectionClass($classname))->newInstanceArgs([$server, $mirror]);
+            return (new \ReflectionClass($classname))->newInstanceArgs([$server]);
         } else {
-            throw new \Exception("Connector not found");
+            throw new \Exception("Synchronizer not found");
         }
     }
 }

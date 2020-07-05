@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class IssueComment extends Model
 {
+    protected $touches = ['issue'];
     protected $fillable = [
         'body',
         'ext_id',
@@ -20,6 +21,11 @@ class IssueComment extends Model
     public function syncedComments()
     {
         return $this->hasMany(SyncedIssueComment::class, 'issue_comment_id', 'id');
+    }
+
+    public function issue()
+    {
+        return $this->belongsTo(Issue::class);
     }
 
     public function queryByExternalId($extId)

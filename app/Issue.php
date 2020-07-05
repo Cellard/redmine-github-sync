@@ -35,7 +35,9 @@ class Issue extends Model
         'author_id', 
         'assignee_id',
         'subject', 
-        'description', 
+        'description',
+        'started_at',
+        'finished_at', 
         'created_at', 
         'updated_at'
     ];

@@ -26,6 +26,8 @@ class Mirror extends Model
         'right_id',
         'ltr_labels',
         'rtl_labels',
+        'synced_at',
+        'start_date',
         'config'
     ];
 
@@ -34,7 +36,7 @@ class Mirror extends Model
         'rtl_labels' => 'array'
     ];
 
-    protected $dates = ['synced_at'];
+    protected $dates = ['synced_at', 'start_date'];
 
     public function left()
     {
@@ -140,18 +142,15 @@ class Mirror extends Model
             return $project->queryIssuesToPush();
         }
 
-        $newIssuesQuery = $project->issues()->whereDoesntHave('syncedIssues', function ($query) use ($mirrorProject) {
+        $mirrorIssues = Issue::whereHas('syncedIssues', function ($query) use ($mirrorProject) {
             $query->where('project_id', $mirrorProject->id);
-        }); 
-        $mirrorNewIssuesQuery = $mirrorProject->issues()->whereDoesntHave('syncedIssues', function ($query) use ($project) {
-            $query->where('project_id', $project->id);
-        }); 
-        $existsIssuesQuery = $project->queryIssuesToPush();
-        $mirrorExistsIssuesQuery = $mirrorProject->queryIssuesToPush();
+        });
 
-        return $mirrorExistsIssuesQuery
-            ->unionAll($existsIssuesQuery)
-            ->unionAll($mirrorNewIssuesQuery)
-            ->unionAll($newIssuesQuery);
+        return $mirrorIssues->whereHas('syncedIssues', function ($query) use ($project) {
+            $query->where('project_id', $project->id)
+                ->whereColumn('synced_issues.updated_at', '<', 'issues.updated_at');
+        })->orWhereDoesntHave('syncedIssues', function ($query) use ($project) {
+            $query->where('project_id', $project->id);
+        });
     }
 }

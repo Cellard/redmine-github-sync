@@ -8,6 +8,9 @@ export default {
     },
     setConfig (ctx, payload) {
       ctx.commit('updateConfig', payload);
+    },
+    setStartDate (ctx, payload) {
+      ctx.commit('updateStartDate', payload);
     }
   },
   mutations: {
@@ -24,11 +27,15 @@ export default {
     updateConfig (state, value) {
       state.config = value;
     },
+    updateStartDate (state, value) {
+      state.startDate = value;
+    },
   },
   state: {
     left: {},
     right: {},
     config: 'both',
+    startDate: '',
     ltrLabelsMap: [],
     rtlLabelsMap: []
   },
@@ -47,6 +54,9 @@ export default {
     },
     config (state) {
       return state.config;
+    },
+    startDate (state) {
+      return state.startDate;
     }
   }
 }

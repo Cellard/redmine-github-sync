@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Jobs\PullIssues;
 use App\Jobs\PushIssues;
+use App\Mirror;
 use Illuminate\Console\Command;
 
 class Sync extends Command
@@ -34,12 +35,10 @@ class Sync extends Command
 
     public function handle()
     {
-        PullIssues::withChain([
-            function ()
-            {
-                dump('next');
-            },
-            new PushIssues
-        ])->dispatch();
+        foreach (Mirror::all() as $mirror) {
+            \App\Jobs\PullIssues::withChain([
+                new \App\Jobs\PushIssues($mirror)
+            ])->dispatch($mirror);
+        }
     }
 }
