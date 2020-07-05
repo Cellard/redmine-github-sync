@@ -13,23 +13,12 @@ use Illuminate\Support\Facades\Auth;
 
 class MirrorController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     * @param ApiRequest $request
-     * @return JsonResource
-     */
     public function index(ApiRequest $request)
     {
         $mirrors = $request->user()->mirrors()->with(['left', 'left.server', 'right', 'right.server'])->get();
         return DefaultResource::collection($mirrors);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
         $mirror = Mirror::create([
@@ -41,7 +30,8 @@ class MirrorController extends Controller
             'ltr_labels' => $request->ltrLabelsMap,
             'rtl_labels' => $request->rtlLabelsMap,
             'config' => $request->config,
-            'start_date' => $request->startDate
+            'start_date' => $request->startDate,
+            'owner_id' => $request->owner
         ]);
         return new DefaultResource($mirror);
     }
@@ -51,13 +41,6 @@ class MirrorController extends Controller
         return MirrorResource::make($mirror);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $id)
     {
         $mirror = Mirror::find($id);
@@ -70,17 +53,12 @@ class MirrorController extends Controller
             'ltr_labels' => $request->ltrLabelsMap,
             'rtl_labels' => $request->rtlLabelsMap,
             'config' => $request->config,
-            'start_date' => $request->startDate
+            'start_date' => $request->startDate,
+            'owner_id' => $request->owner
         ]);
         return new DefaultResource($mirror);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
         Mirror::find($id)->delete();

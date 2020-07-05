@@ -3641,6 +3641,17 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -3649,7 +3660,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     return {
       loading: true,
       direction: 'rtl',
-      formLoading: false
+      formLoading: false,
+      users: [],
+      title: 'New Mirror'
     };
   },
   computed: _objectSpread({}, Object(vuex__WEBPACK_IMPORTED_MODULE_2__["mapGetters"])(['drawlerVisibility', 'drawlerData', 'leftMirror', 'rightMirror', 'ltrMirrorLabels', 'rtlMirrorLabels']), {
@@ -3667,6 +3680,14 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       },
       set: function set(value) {
         _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setConfig', value);
+      }
+    },
+    owner: {
+      get: function get() {
+        return _store__WEBPACK_IMPORTED_MODULE_1__["store"].getters.owner;
+      },
+      set: function set(value) {
+        _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setOwner', value);
       }
     }
   }),
@@ -3700,6 +3721,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
                 if (response && response.status === 200) {
                   data = response.data.data;
+                  _this.title = data.left.name + ' - ' + data.right.name;
                   _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setMirror', {
                     position: 'left',
                     value: {
@@ -3724,6 +3746,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                   });
                   _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setConfig', data.config);
                   _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setStartDate', data.start_date);
+                  _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setOwner', data.owner_id);
+                  _this.users = data.users;
                 } else {
                   _this.reset();
                 }
@@ -3747,6 +3771,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('close');
     },
     reset: function reset() {
+      this.title = "New mirror";
       _store__WEBPACK_IMPORTED_MODULE_1__["store"].dispatch('setMirror', {
         position: 'left',
         value: {
@@ -3789,7 +3814,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         ltrLabelsMap: this.ltrMirrorLabels,
         rtlLabelsMap: this.rtlMirrorLabels,
         config: this.config,
-        startDate: this.startDate
+        startDate: this.startDate,
+        owner: this.owner
       }).then(function (response) {
         _this2.$router.go();
       })["catch"](function (error) {
@@ -102105,9 +102131,7 @@ var render = function() {
         {
           ref: "drawer",
           attrs: {
-            title: _vm.drawlerData
-              ? _vm.leftMirror.server + " - " + _vm.rightMirror.server
-              : "New Mirror",
+            title: _vm.title,
             visible: _vm.drawlerVisibility,
             direction: _vm.direction,
             size: "auto"
@@ -102205,6 +102229,36 @@ var render = function() {
                           expression: "startDate"
                         }
                       })
+                    ],
+                    1
+                  ),
+                  _vm._v(" "),
+                  _c("br"),
+                  _vm._v(" "),
+                  _c(
+                    "el-form-item",
+                    { attrs: { label: "Owner" } },
+                    [
+                      _c(
+                        "el-select",
+                        {
+                          attrs: { placeholder: "Select" },
+                          model: {
+                            value: _vm.owner,
+                            callback: function($$v) {
+                              _vm.owner = $$v
+                            },
+                            expression: "owner"
+                          }
+                        },
+                        _vm._l(_vm.users, function(user) {
+                          return _c("el-option", {
+                            key: user.id,
+                            attrs: { label: user.name, value: user.id }
+                          })
+                        }),
+                        1
+                      )
                     ],
                     1
                   )
@@ -119933,8 +119987,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       ctx.commit('updateConfig', payload);
     },
     setStartDate: function setStartDate(ctx, payload) {
-      console.log(payload);
       ctx.commit('updateStartDate', payload);
+    },
+    setOwner: function setOwner(ctx, payload) {
+      ctx.commit('updateOwner', payload);
     }
   },
   mutations: {
@@ -119950,13 +120006,17 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     },
     updateStartDate: function updateStartDate(state, value) {
       state.startDate = value;
+    },
+    updateOwner: function updateOwner(state, value) {
+      state.owner = value;
     }
   },
   state: {
     left: {},
     right: {},
     config: 'both',
-    startDate: '',
+    startDate: null,
+    owner: null,
     ltrLabelsMap: [],
     rtlLabelsMap: []
   },
@@ -119978,6 +120038,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     },
     startDate: function startDate(state) {
       return state.startDate;
+    },
+    owner: function owner(state) {
+      return state.owner;
     }
   }
 });

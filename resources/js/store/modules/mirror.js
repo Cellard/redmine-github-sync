@@ -11,6 +11,9 @@ export default {
     },
     setStartDate (ctx, payload) {
       ctx.commit('updateStartDate', payload);
+    },
+    setOwner (ctx, payload) {
+      ctx.commit('updateOwner', payload);
     }
   },
   mutations: {
@@ -30,12 +33,16 @@ export default {
     updateStartDate (state, value) {
       state.startDate = value;
     },
+    updateOwner (state, value) {
+      state.owner = value;
+    },
   },
   state: {
     left: {},
     right: {},
     config: 'both',
-    startDate: '',
+    startDate: null,
+    owner: null,
     ltrLabelsMap: [],
     rtlLabelsMap: []
   },
@@ -57,6 +64,9 @@ export default {
     },
     startDate (state) {
       return state.startDate;
+    },
+    owner (state) {
+      return state.owner;
     }
   }
 }

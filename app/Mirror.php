@@ -53,6 +53,19 @@ class Mirror extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function availableOwners()
+    {
+        $serverIds = Project::findMany($this->projects()->pluck('id')->toArray())->pluck('server_id')->toArray();
+        return User::whereHas('credentials', function ($query) use ($serverIds) {
+            $query->whereNotNull('api_key')->whereIn('server_id', $serverIds);
+        })->get();
+    }
+
     /**
      * @return \Illuminate\Support\Collection|Project[]
      */

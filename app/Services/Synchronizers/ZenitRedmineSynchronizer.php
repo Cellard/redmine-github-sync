@@ -41,7 +41,7 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
     {
         $localIssue->update([
             'subject' => $issue['subject'],
-            'assignee_id' => $this->mirror->user->id,
+            'assignee_id' => $this->mirror->owner_id,
             'description' => $issue['description'] ?? null,
             'started_at' => isset($issue['start_date']) 
                 ? Carbon::parse($issue['start_date'])->setTimezone(config('app.timezone'))
@@ -61,7 +61,7 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
             'ext_id' => $issue['id'],
             'project_id' => $project->id,
             'author_id' => $author['id'],
-            'assignee_id' => $this->mirror->user->id,
+            'assignee_id' => $this->mirror->owner,
             'subject' => $issue['subject'],
             'description' => $issue['description'] ?? null,
             'started_at' => isset($issue['start_date']) 

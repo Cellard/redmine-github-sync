@@ -30,7 +30,7 @@ class LocalRedmineSynchronizer {
     protected function connect(?string $apiKey = null): void
     {
         if (!$apiKey) {
-            $apiKey = $this->mirror->user->credentials()->where('server_id', $this->server->id)->first()->api_key;
+            $apiKey = $this->mirror->owner->credentials()->where('server_id', $this->server->id)->first()->api_key;
         }
         $this->client = new \Redmine\Client($this->server->base_uri, $apiKey);
     }

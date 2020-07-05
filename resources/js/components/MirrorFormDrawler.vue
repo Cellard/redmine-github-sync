@@ -4,7 +4,7 @@
     <el-button @click="show()" style="margin-bottom: 10px" type="primary" icon="el-icon-circle-plus">Add mirror</el-button>
 
     <el-drawer
-      :title="drawlerData ? leftMirror.server + ' - ' + rightMirror.server : 'New Mirror'"
+      :title="title"
       :visible.sync="drawlerVisibility"
       :direction="direction"
       size="auto"
@@ -50,6 +50,17 @@
               placeholder="Pick a day">
             </el-date-picker>
           </el-form-item>
+          <br>
+          <el-form-item label="Owner">
+            <el-select v-model="owner" placeholder="Select">
+              <el-option
+                v-for="user in users"
+                :key="user.id"
+                :label="user.name"
+                :value="user.id">
+              </el-option>
+            </el-select>
+          </el-form-item>
         </el-form>
 
         <el-divider content-position="left">
@@ -84,6 +95,8 @@
         loading: true,
         direction: 'rtl',
         formLoading: false,
+        users: [],
+        title: 'New Mirror'
       };
     },
     computed: {
@@ -110,6 +123,14 @@
         set(value){
           store.dispatch('setConfig', value);
         } 
+      },
+      owner: {
+        get(){
+          return store.getters.owner
+        },
+        set(value){
+          store.dispatch('setOwner', value);
+        } 
       }
     },
     watch: {
@@ -123,6 +144,9 @@
         const response = await this.fetchData(newValue);
         if (response && response.status === 200) {
           const data = response.data.data;
+
+          this.title = data.left.name + ' - ' + data.right.name;
+          
           store.dispatch('setMirror', {
             position: 'left',
             value: {
@@ -147,6 +171,8 @@
           });
           store.dispatch('setConfig', data.config);
           store.dispatch('setStartDate', data.start_date);
+          store.dispatch('setOwner', data.owner_id);
+          this.users = data.users;
         } else {
           this.reset();
         }
@@ -161,6 +187,7 @@
         store.dispatch('close');
       },
       reset () {
+        this.title = "New mirror";
         store.dispatch('setMirror', {
           position: 'left',
           value: {
@@ -201,7 +228,8 @@
           ltrLabelsMap: this.ltrMirrorLabels,
           rtlLabelsMap: this.rtlMirrorLabels,
           config: this.config,
-          startDate: this.startDate
+          startDate: this.startDate,
+          owner: this.owner
         }).then(response => {
             this.$router.go();
         }).catch(error => {
