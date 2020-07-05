@@ -28,7 +28,8 @@ class Mirror extends Model
         'rtl_labels',
         'synced_at',
         'start_date',
-        'config'
+        'config',
+        'owner_id'
     ];
 
     protected $casts = [

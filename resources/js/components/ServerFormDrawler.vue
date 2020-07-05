@@ -104,6 +104,7 @@
         this.$refs.serverForm.resetFields();
       },
       submit(done) {
+        this.formLoading = true;
         this.$refs.serverForm.validate((valid) => {
           if (valid) {
             const endpoint = this.drawlerData ? '/api/servers/' + this.drawlerData : '/api/servers/';
@@ -124,6 +125,7 @@
                 this.errors = data.errors;
               }
             });
+            this.loading = false;
           } else {
             return false;
           }

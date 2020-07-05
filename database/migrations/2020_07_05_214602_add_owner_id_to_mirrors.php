@@ -27,6 +27,7 @@ class AddOwnerIdToMirrors extends Migration
     public function down()
     {
         Schema::table('mirrors', function (Blueprint $table) {
+            $table->dropForeign(['owner_id']);
             $table->dropColumn('owner_id');
         });
     }

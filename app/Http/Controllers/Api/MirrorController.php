@@ -7,6 +7,7 @@ use App\Http\Requests\ApiRequest;
 use App\Http\Resources\DefaultResource;
 use App\Http\Resources\MirrorResource;
 use App\Mirror;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
@@ -30,7 +31,7 @@ class MirrorController extends Controller
             'ltr_labels' => $request->ltrLabelsMap,
             'rtl_labels' => $request->rtlLabelsMap,
             'config' => $request->config,
-            'start_date' => $request->startDate,
+            'start_date' => Carbon::parse($request->startDate),
             'owner_id' => $request->owner
         ]);
         return new DefaultResource($mirror);
@@ -53,7 +54,7 @@ class MirrorController extends Controller
             'ltr_labels' => $request->ltrLabelsMap,
             'rtl_labels' => $request->rtlLabelsMap,
             'config' => $request->config,
-            'start_date' => $request->startDate,
+            'start_date' => Carbon::parse($request->startDate),
             'owner_id' => $request->owner
         ]);
         return new DefaultResource($mirror);

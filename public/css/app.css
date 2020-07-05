@@ -10926,6 +10926,7 @@ body #app main #container .el-drawer__header {
 html #app main #container .el-drawer,
 body #app main #container .el-drawer {
   overflow: auto;
+  min-width: 30%;
 }
 
 html #app main #container .drawer__content,

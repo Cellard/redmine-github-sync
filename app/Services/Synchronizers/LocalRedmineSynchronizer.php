@@ -185,8 +185,10 @@ class LocalRedmineSynchronizer {
         if ($localIssue->ext_id === $issue['id']) {
             foreach ($types as $type) {
                 $labelId = IssueLabelsMapper::getLabelByExtId($issue[$type]['id'], $this->server->id, $type);
-                if ($localIssue->$type()->id !== $labelId) {
-                    $localIssue->enumerations()->detach($localIssue->$type()->id);
+                if (!$localIssue->$type() || $localIssue->$type()->id !== $labelId) {
+                    if ($localIssue->$type()) {
+                        $localIssue->enumerations()->detach($localIssue->$type()->id);
+                    }
                     $localIssue->enumerations()->attach($labelId);
                     $localIssue->withoutEvents(function () use ($localIssue, $issue) {
                         $localIssue->update([
@@ -200,8 +202,10 @@ class LocalRedmineSynchronizer {
             foreach ($types as $type) {
                 $label = IssueLabelsMapper::getLabelByExtId($issue[$type]['id'], $this->server->id, $type);
                 if ($labelId = IssueLabelsMapper::findIdInLabels($label->id, $labelsMap)) {
-                    if ($localIssue->$type()->id !== $labelId) {
-                        $localIssue->enumerations()->detach($localIssue->$type()->id);
+                    if (!$localIssue->$type() || $localIssue->$type()->id !== $labelId) {
+                        if ($localIssue->$type()) {
+                            $localIssue->enumerations()->detach($localIssue->$type()->id);
+                        }
                         $localIssue->enumerations()->attach($labelId);
                         $localIssue->withoutEvents(function () use ($localIssue, $issue) {
                             $localIssue->update([

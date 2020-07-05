@@ -26,7 +26,7 @@ class SetEmailNullableInUsers extends Migration
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('email')->unique()->nullable()->change();
+            //$table->string('email')->unique()->change();
         });
     }
 }

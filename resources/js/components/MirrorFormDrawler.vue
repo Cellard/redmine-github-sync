@@ -45,6 +45,7 @@
           </el-form-item>
           <el-form-item label="Start date">
             <el-date-picker
+              value-format="yyyy-MM-dd"
               v-model="startDate"
               type="date"
               placeholder="Pick a day">
@@ -172,7 +173,6 @@
           store.dispatch('setConfig', data.config);
           store.dispatch('setStartDate', data.start_date);
           store.dispatch('setOwner', data.owner_id);
-          this.users = data.users;
         } else {
           this.reset();
         }
@@ -247,9 +247,16 @@
           .then(response => {              
             return response;
           });
+      },
+      fetchUsers: function (id) {
+        return this.$http.get('/api/users/')
+          .then(response => {
+            this.users = response.data.data;
+          });
       }
     },
     mounted() {
+      this.fetchUsers();
       this.$refs.drawer.closeDrawer = () => {
         this.close();
       }

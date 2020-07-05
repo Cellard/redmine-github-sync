@@ -7,6 +7,7 @@ use App\Http\Requests\ApiRequest;
 use App\Http\Requests\StoreServer;
 use App\Http\Resources\DefaultResource;
 use App\Http\Resources\ServerResource;
+use App\Jobs\Download;
 use App\Server;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
@@ -37,10 +38,11 @@ class ServerController extends Controller
             'driver' => $request->driver,
             'base_uri' => $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . '/'
         ]);
-        $server->credentials()->create([
+        $credential = $server->credentials()->create([
             'user_id' => Auth::id(),
             'api_key' => $request->api_key
         ]);
+        Download::dispatch($credential);
         return new ServerResource($server);
     }
 
