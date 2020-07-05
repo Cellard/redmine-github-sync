@@ -86,7 +86,7 @@
           });
       },
       formatDate: function (date) {
-        return moment(date).format('DD.MM.YYYY hh:mm:ss');
+        return moment(date).format('DD.MM.YYYY H:mm:ss');
       }
     },
     mounted () {
