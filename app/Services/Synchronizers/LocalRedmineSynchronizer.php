@@ -183,18 +183,34 @@ class LocalRedmineSynchronizer {
             'priority'
         ];
         if ($localIssue->ext_id === $issue['id']) {
-            $localIssue->enumerations()->detach();
             foreach ($types as $type) {
                 $labelId = IssueLabelsMapper::getLabelByExtId($issue[$type]['id'], $this->server->id, $type);
-                $localIssue->enumerations()->attach($labelId);
+                if ($localIssue->$type()->id !== $labelId) {
+                    $localIssue->enumerations()->detach($localIssue->$type()->id);
+                    $localIssue->enumerations()->attach($labelId);
+                    $localIssue->withoutEvents(function () use ($localIssue, $issue) {
+                        $localIssue->update([
+                            'updated_at' => Carbon::parse($issue['updated_on'])->setTimezone(config('app.timezone'))
+                        ]);
+                    });
+                }
             }
         } else {
             $labelsMap = $this->mirror->getLabelsMap($project);
             foreach ($types as $type) {
                 $label = IssueLabelsMapper::getLabelByExtId($issue[$type]['id'], $this->server->id, $type);
                 if ($labelId = IssueLabelsMapper::findIdInLabels($label->id, $labelsMap)) {
-                    $localIssue->enumerations()->detach($localIssue->$type()->id);
-                    $localIssue->enumerations()->attach($labelId);
+                    if ($localIssue->$type()->id !== $labelId) {
+                        $localIssue->enumerations()->detach($localIssue->$type()->id);
+                        $localIssue->enumerations()->attach($labelId);
+                        $localIssue->withoutEvents(function () use ($localIssue, $issue) {
+                            $localIssue->update([
+                                'updated_at' => Carbon::parse($issue['updated_on'])->setTimezone(config('app.timezone'))
+                            ]);
+                        });
+                    }
+                }  else {
+                    throw new \Exception('Not matched label: ' . $issue[$type]['name']);
                 }
             }
         }
@@ -226,12 +242,18 @@ class LocalRedmineSynchronizer {
             if ($labelsMap) {
                 if ($ext_id = IssueLabelsMapper::getLabelExtId($localIssue, $labelsMap, 'tracker')) {
                     $attributes['tracker_id'] = $ext_id;
+                } else {
+                    throw new \Exception('Not matched label: ' . $localIssue->tracker()->name);
                 }
                 if ($ext_id = IssueLabelsMapper::getLabelExtId($localIssue, $labelsMap, 'status')) {
                     $attributes['status_id'] = $ext_id;
+                } else {
+                    throw new \Exception('Not matched label: ' . $localIssue->status()->name);
                 }
                 if ($ext_id = IssueLabelsMapper::getLabelExtId($localIssue, $labelsMap, 'priority')) {
                     $attributes['priority_id'] = $ext_id;
+                } else {
+                    throw new \Exception('Not matched label: ' . $localIssue->priority()->name);
                 }
             }
         }
