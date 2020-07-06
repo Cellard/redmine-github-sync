@@ -24,7 +24,7 @@ use Illuminate\Notifications\Notifiable;
  * @property-read Collection|Project[] $projects
  * @property-read Collection|Milestone[] $milestones
  */
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use Notifiable;
 

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Auth::routes();
+Auth::routes(['verify' => true]);
 
 Route::get('/{vue?}', 'HomeController@index')->name('home')
-    ->where('vue', '[a-z0-9_\.\-\/\@]*');
+    ->where('vue', '[a-z0-9_\.\-\/\@]*')->middleware('verified');
