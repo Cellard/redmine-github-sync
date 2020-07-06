@@ -28,6 +28,13 @@
         </template>
       </el-table-column>
 
+      <el-table-column label="Type">
+        <template slot-scope="scope">
+          <i v-if="scope.row.type === 'Pull issues'" class="el-icon-download"> {{ scope.row.type }}</i>
+          <i v-if="scope.row.type === 'Push issues'" class="el-icon-upload2"> {{ scope.row.type }}</i>
+        </template>
+      </el-table-column>
+
       <el-table-column label="Status">
         <template slot-scope="scope">
           <el-tag v-if="scope.row.status === 'Finished with errors'" type="danger">{{scope.row.status}}</el-tag>
@@ -80,8 +87,6 @@
         this.$http.get('/api/logs/')
           .then(response => {
             this.logs = response.data.data;
-            console.log(this.logs);
-            
             store.dispatch('finishLoading');
           });
       },

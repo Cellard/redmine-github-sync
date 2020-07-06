@@ -4,12 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ApiRequest;
+use App\Http\Requests\StoreMirror;
 use App\Http\Resources\DefaultResource;
 use App\Http\Resources\MirrorResource;
 use App\Mirror;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
 
 class MirrorController extends Controller
@@ -20,7 +19,7 @@ class MirrorController extends Controller
         return DefaultResource::collection($mirrors);
     }
 
-    public function store(Request $request)
+    public function store(StoreMirror $request)
     {
         $mirror = Mirror::create([
             'user_id' => Auth::id(),
@@ -31,7 +30,7 @@ class MirrorController extends Controller
             'ltr_labels' => $request->ltrLabelsMap,
             'rtl_labels' => $request->rtlLabelsMap,
             'config' => $request->config,
-            'start_date' => Carbon::parse($request->startDate),
+            'start_date' => Carbon::parse($request->startDate)->setTimezone(config('app.timezone')),
             'owner_id' => $request->owner
         ]);
         return new DefaultResource($mirror);
@@ -42,7 +41,7 @@ class MirrorController extends Controller
         return MirrorResource::make($mirror);
     }
 
-    public function update(Request $request, $id)
+    public function update(StoreMirror $request, $id)
     {
         $mirror = Mirror::find($id);
         $mirror->update([
@@ -54,7 +53,7 @@ class MirrorController extends Controller
             'ltr_labels' => $request->ltrLabelsMap,
             'rtl_labels' => $request->rtlLabelsMap,
             'config' => $request->config,
-            'start_date' => Carbon::parse($request->startDate),
+            'start_date' => Carbon::parse($request->startDate)->setTimezone(config('app.timezone')),
             'owner_id' => $request->owner
         ]);
         return new DefaultResource($mirror);

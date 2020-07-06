@@ -39,7 +39,9 @@ class Issue extends Model
         'started_at',
         'finished_at', 
         'created_at', 
-        'updated_at'
+        'updated_at',
+        'estimated_hours',
+        'done_ratio'
     ];
 
     public function project()

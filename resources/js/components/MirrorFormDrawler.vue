@@ -23,8 +23,8 @@
         <el-divider content-position="left">
           <h5>Config</h5>
         </el-divider>
-        <el-form :inline="true" label-position="top">
-          <el-form-item label="New issues sync direction">
+        <el-form :rules="rules" :inline="true" label-position="top">
+          <el-form-item prop="config" label="New issues sync direction">
             <el-select v-model="config" placeholder="Select">
               <el-option
                 key="both"
@@ -45,14 +45,13 @@
           </el-form-item>
           <el-form-item label="Start date">
             <el-date-picker
-              value-format="yyyy-MM-dd"
               v-model="startDate"
               type="date"
               placeholder="Pick a day">
             </el-date-picker>
           </el-form-item>
           <br>
-          <el-form-item label="Owner">
+          <el-form-item prop="owner" label="Owner">
             <el-select v-model="owner" placeholder="Select">
               <el-option
                 v-for="user in users"
@@ -89,6 +88,7 @@
   import { store } from '../store'
   import { mapGetters } from 'vuex';
   import { Message } from 'element-ui';
+  import moment from 'moment';
 
   export default {
     data() {
@@ -97,7 +97,15 @@
         direction: 'rtl',
         formLoading: false,
         users: [],
-        title: 'New Mirror'
+        title: 'New Mirror',
+        rules: {
+          owner: [
+            { required: true, message: 'Please select owner', trigger: 'blur' }
+          ],
+          config: [
+            { required: true, message: 'Please select sync direction', trigger: 'blur' }
+          ]
+        },
       };
     },
     computed: {

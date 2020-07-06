@@ -131,6 +131,16 @@ class Mirror extends Model
         if ($project->id === $this->left->id) {
             return $this->ltr_labels;
         } else if ($project->id === $this->right->id) {
+            return $this->rtl_labels;
+        }
+        throw new \Exception("Project is not included to mirror.");
+    }
+
+    public function getMirrorLabelsMap($project)
+    {
+        if ($project->id === $this->left->id) {
+            return $this->rtl_labels;
+        } else if ($project->id === $this->right->id) {
             return $this->ltr_labels;
         }
         throw new \Exception("Project is not included to mirror.");

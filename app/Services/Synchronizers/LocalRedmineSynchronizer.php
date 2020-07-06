@@ -67,8 +67,8 @@ class LocalRedmineSynchronizer {
             try {
                 $this->updateOrCreateLocalIssue($issue, $project);
             } catch (\Throwable $th) {
-                dump($th->getMessage());
                 $message = "Error pulling to {$project->name} an issue \"{$issue['subject']}\": {$th->getMessage()}";
+                dump($message);
                 FacadesLog::error($message);
                 $this->log->errors()->create([
                     'message' => $message
@@ -89,9 +89,6 @@ class LocalRedmineSynchronizer {
         $this->createLog('Push issues');
         foreach ($issuesToPush as $localIssue) {
             try {
-                dump($project->name);
-                dump($localIssue->subject);
-
                 if ($credential = $localIssue->author->credentials()->where('server_id', $this->server->id)->first()) {
                     $this->connect($credential->api_key);
                 } else {
@@ -110,6 +107,7 @@ class LocalRedmineSynchronizer {
 
             } catch (\Throwable $th) {
                 $message = "Error pushing to {$project->name} an issue \"{$localIssue->subject}\": {$th->getMessage()}";
+                dump($message);
                 FacadesLog::error($message);
                 $this->log->errors()->create([
                     'message' => $message
@@ -184,39 +182,52 @@ class LocalRedmineSynchronizer {
         ];
         if ($localIssue->ext_id === $issue['id']) {
             foreach ($types as $type) {
-                $labelId = IssueLabelsMapper::getLabelByExtId($issue[$type]['id'], $this->server->id, $type);
-                if (!$localIssue->$type() || $localIssue->$type()->id !== $labelId) {
-                    if ($localIssue->$type()) {
-                        $localIssue->enumerations()->detach($localIssue->$type()->id);
-                    }
-                    $localIssue->enumerations()->attach($labelId);
-                    $localIssue->withoutEvents(function () use ($localIssue, $issue) {
-                        $localIssue->update([
-                            'updated_at' => Carbon::parse($issue['updated_on'])->setTimezone(config('app.timezone'))
-                        ]);
-                    });
+                $label = IssueLabelsMapper::getLabelByExtId($issue[$type]['id'], $this->server->id, $type);
+                if ($label)
+                {
+                    $this->attachOneLabel($localIssue, $issue, $type, $label->id);
                 }
             }
         } else {
             $labelsMap = $this->mirror->getLabelsMap($project);
             foreach ($types as $type) {
-                $label = IssueLabelsMapper::getLabelByExtId($issue[$type]['id'], $this->server->id, $type);
-                if ($labelId = IssueLabelsMapper::findIdInLabels($label->id, $labelsMap)) {
-                    if (!$localIssue->$type() || $localIssue->$type()->id !== $labelId) {
-                        if ($localIssue->$type()) {
-                            $localIssue->enumerations()->detach($localIssue->$type()->id);
-                        }
-                        $localIssue->enumerations()->attach($labelId);
-                        $localIssue->withoutEvents(function () use ($localIssue, $issue) {
-                            $localIssue->update([
-                                'updated_at' => Carbon::parse($issue['updated_on'])->setTimezone(config('app.timezone'))
-                            ]);
-                        });
+                $labelId = IssueLabelsMapper::findIdInLabels($localIssue->$type()->id, $this->mirror->getMirrorLabelsMap($project));
+                if ($labelId) {
+                    $label = IssueLabelsMapper::getLabelByExtId($issue[$type]['id'], $this->server->id, $type);
+                    if ($labelId = IssueLabelsMapper::findIdInLabels($label->id, $labelsMap)) {
+                        $this->attachOneLabel($localIssue, $issue, $type, $labelId);
+                    }  else {
+                        $message = 'Not matched label: ' . $issue[$type]['name'];
+                        dump($message);
+                        FacadesLog::error($message);
+                        $this->log->errors()->create([
+                            'message' => $message
+                        ]);
                     }
-                }  else {
-                    throw new \Exception('Not matched label: ' . $issue[$type]['name']);
+                } else {
+                    $message = 'Not matched label: ' . $localIssue->$type()->name;
+                    dump($message);
+                    FacadesLog::error($message);
+                    $this->log->errors()->create([
+                        'message' => $message
+                    ]);
                 }
             }
+        }
+    }
+
+    protected function attachOneLabel(Issue $localIssue, array $issue, string $type, int $labelId): void
+    {
+        if (!$localIssue->$type() || $localIssue->$type()->id !== $labelId) {
+            if ($localIssue->$type()) {
+                $localIssue->enumerations()->detach($localIssue->$type()->id);
+            }
+            $localIssue->enumerations()->attach($labelId);
+            $localIssue->withoutEvents(function () use ($localIssue, $issue) {
+                $localIssue->update([
+                    'updated_at' => Carbon::parse($issue['updated_on'])->setTimezone(config('app.timezone'))
+                ]);
+            });
         }
     }
 
@@ -232,6 +243,8 @@ class LocalRedmineSynchronizer {
             'description' => $localIssue->description,
             'project_id' => $project->ext_id,
             'assigned_to_id' => $assigne['ext_id'] ?? null,
+            'estimated_hours' => $localIssue->estimated_hours,
+            'done_ratio' => $localIssue->done_ratio,
             'start_date' => $localIssue->started_at ? $localIssue->started_at->toDateString() : null,
             'due_date' => $localIssue->finished_at ? $localIssue->finished_at->toDateString() : null,
             'author_id' => $this->getAccount()['id']
@@ -242,22 +255,37 @@ class LocalRedmineSynchronizer {
             $attributes['status_id'] = $localIssue->status()->ext_id;
             $attributes['priority_id'] = $localIssue->priority()->ext_id;
         } else {
-            $labelsMap = $this->mirror->getLabelsMap($project);
+            $labelsMap = $this->mirror->getMirrorLabelsMap($project);
             if ($labelsMap) {
                 if ($ext_id = IssueLabelsMapper::getLabelExtId($localIssue, $labelsMap, 'tracker')) {
                     $attributes['tracker_id'] = $ext_id;
                 } else {
-                    throw new \Exception('Not matched label: ' . $localIssue->tracker()->name);
+                    $message = 'Not matched label: ' . $localIssue->tracker()->name;
+                    dump($message);
+                    FacadesLog::error($message);
+                    $this->log->errors()->create([
+                        'message' => $message
+                    ]);
                 }
                 if ($ext_id = IssueLabelsMapper::getLabelExtId($localIssue, $labelsMap, 'status')) {
                     $attributes['status_id'] = $ext_id;
                 } else {
-                    throw new \Exception('Not matched label: ' . $localIssue->status()->name);
+                    $message = 'Not matched label: ' . $localIssue->status()->name;
+                    dump($message);
+                    FacadesLog::error($message);
+                    $this->log->errors()->create([
+                        'message' => $message
+                    ]);
                 }
                 if ($ext_id = IssueLabelsMapper::getLabelExtId($localIssue, $labelsMap, 'priority')) {
                     $attributes['priority_id'] = $ext_id;
                 } else {
-                    throw new \Exception('Not matched label: ' . $localIssue->priority()->name);
+                    $message = 'Not matched label: ' . $localIssue->priority()->name;
+                    dump($message);
+                    FacadesLog::error($message);
+                    $this->log->errors()->create([
+                        'message' => $message
+                    ]);
                 }
             }
         }
@@ -301,6 +329,8 @@ class LocalRedmineSynchronizer {
                 ? Carbon::parse($issue['due_date'])->setTimezone(config('app.timezone')) 
                 : null,
             'assignee_id' => $assignee['id'] ?? null,
+            'estimated_hours' => $issue['estimated_hours'] ?? null,
+            'done_ratio' => $issue['done_ratio'] ?? null,
             'description' => $issue['description'] ?? null,
             'updated_at' => Carbon::parse($issue['updated_on'])->setTimezone(config('app.timezone'))
         ]);
@@ -317,6 +347,8 @@ class LocalRedmineSynchronizer {
             'author_id' => $author['id'],
             'assignee_id' => $assignee['id'] ?? null,
             'subject' => $issue['subject'],
+            'estimated_hours' => $issue['estimated_hours'] ?? null,
+            'done_ratio' => $issue['done_ratio'] ?? null,
             'description' => $issue['description'] ?? null,
             'started_at' => isset($issue['start_date']) 
                 ? Carbon::parse($issue['start_date'])->setTimezone(config('app.timezone'))

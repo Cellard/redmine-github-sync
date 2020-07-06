@@ -61,7 +61,7 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
             'ext_id' => $issue['id'],
             'project_id' => $project->id,
             'author_id' => $author['id'],
-            'assignee_id' => $this->mirror->owner,
+            'assignee_id' => $this->mirror->owner_id,
             'subject' => $issue['subject'],
             'description' => $issue['description'] ?? null,
             'started_at' => isset($issue['start_date']) 
@@ -76,14 +76,14 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
 
     protected function updateRemoteIssue(int $id, array $attributes)
     {
-        $attributes['assignee_id'] = self::MEDIA_GROUP_ID;
+        $attributes['assigned_to_id'] = self::MEDIA_GROUP_ID;
         $this->client->issue->update($id, $attributes);
         return $this->client->issue->show($id)['issue'];
     }
 
     protected function createRemoteIssue(array $attributes)
     {
-        $attributes['assignee_id'] = self::MEDIA_GROUP_ID;
+        $attributes['assigned_to_id'] = self::MEDIA_GROUP_ID;
         return (array)$this->client->issue->create($attributes);
     }
 }
