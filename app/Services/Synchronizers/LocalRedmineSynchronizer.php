@@ -387,32 +387,21 @@ class LocalRedmineSynchronizer {
             'username' => $user['login'] ?? null
         ]);
 
-        if ($credential->user) {
-            $credential->user->update([
-                'email' => $user['mail'] ?? null,
+        $user = User::updateOrCreate(
+            [
+                'email' => $user['mail'] ?? null
+            ],
+            [
                 'name' => $user['login'] ?? 
                     $user['firstname'] . ' ' . ($user['lastname'] ?? '') 
                     ?? $user['id'] . $this->server->base_url,
                 'email_verified_at' => Carbon::now(),
                 'password' => Str::random(64)
-            ]);
-            $user = $credential->user;
-        } else {
-            $user = $credential->user()->updateOrCreate(
-                [
-                    'email' => $user['mail'] ?? null
-                ],
-                [
-                    'name' => $user['login'] ?? 
-                        $user['firstname'] . ' ' . ($user['lastname'] ?? '') 
-                        ?? $user['id'] . $this->server->base_url,
-                    'email_verified_at' => Carbon::now(),
-                    'password' => Str::random(64)
-                ]
-            );
-            $credential->user_id = $user->id;
-            $credential->save();
-        }
+            ]
+        );
+
+        $credential->user_id = $user->id;
+        $credential->save();
 
         return $user;
     }
