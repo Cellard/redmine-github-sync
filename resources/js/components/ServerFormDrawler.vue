@@ -125,10 +125,10 @@
                 this.errors = data.errors;
               }
             });
-            this.loading = false;
           } else {
             return false;
           }
+          this.formLoading = false;
         });
       },
       fetchData: function (id) {
