@@ -38,17 +38,10 @@ class ServerController extends Controller
             'driver' => $request->driver,
             'base_uri' => $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . '/'
         ]);
-        $credential = $server->credentials()->where('user_id', Auth::id())->first();
-        if ($credential) {
-            $credential->update([
-                'api_key' => $request->api_key
-            ]);
-        } else {
-            $credential = $server->credentials()->create([
-                'user_id' => Auth::id(),
-                'api_key' => $request->api_key
-            ]);
-        }
+        $credential = $server->credentials()->create([
+            'user_id' => Auth::id(),
+            'api_key' => $request->api_key
+        ]);
         Download::dispatch($credential);
         return new ServerResource($server);
     }
@@ -73,12 +66,17 @@ class ServerController extends Controller
             'driver' => $request->driver,
             'base_uri' => $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . '/'
         ]);
-        $server->credentials()->where('user_id', Auth::id())->update([
-            'user_id' => Auth::id(),
-            'api_key' => $request->api_key,
-            'ext_id' => null,
-            'username' => null
-        ]);
+        $credential = $server->credentials()->where('user_id', Auth::id())->first();
+        if ($credential) {
+            $credential->update([
+                'api_key' => $request->api_key
+            ]);
+        } else {
+            $credential = $server->credentials()->create([
+                'user_id' => Auth::id(),
+                'api_key' => $request->api_key
+            ]);
+        }
         return new ServerResource($server);
     }
 
