@@ -378,32 +378,32 @@ class LocalRedmineSynchronizer {
 
     protected function updateOrCreateUser(array $user): User
     {
-        $credential = Credential::updateOrCreate([
-            'ext_id' => $user['id'],
+        $credential = Credential::where([
+            'username' => $user['login'] ?? $user['firstname'] . ' ' . ($user['lastname'] ?? ''),
             'server_id' => $this->server->id
-        ],
-        [
-            'ext_id' => $user['id'],
-            'username' => $user['login'] ?? null
-        ]);
+        ])->first();
 
-        $user = User::updateOrCreate(
-            [
-                'email' => $user['mail'] ?? null
-            ],
-            [
+        if ($credential) {
+            $credential->ext_id = $user['id'];
+            $credential->save();
+        } else {
+            $credential = Credential::create([
+                'username' => $user['login'] ?? $user['firstname'] . ' ' . ($user['lastname'] ?? ''),
+                'server_id' => $this->server->id,
+                'ext_id' => $user['id']
+            ]);
+            $user = $credential->user()->create([
+                'email' => $user['mail'] ?? null,
                 'name' => $user['login'] ?? 
                     $user['firstname'] . ' ' . ($user['lastname'] ?? '') 
                     ?? $user['id'] . $this->server->base_url,
                 'email_verified_at' => Carbon::now(),
                 'password' => Str::random(64)
-            ]
-        );
-
-        $credential->user_id = $user->id;
-        $credential->save();
-
-        return $user;
+            ]);
+            $credential->user_id = $user->id;
+            $credential->save();
+        }
+        return $credential->user;
     }
 
     protected function getComments(int $id): array
