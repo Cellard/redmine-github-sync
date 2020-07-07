@@ -381,29 +381,36 @@ class LocalRedmineSynchronizer {
         $credential = Credential::where([
             'ext_id' => $user['id'],
             'server_id' => $this->server->id
-        ])->orWhere([
-            'username' => $user['login'] ?? $user['firstname'] . ' ' . ($user['lastname'] ?? ''),
-            'server_id' => $this->server->id
         ])->first();
 
-        if ($credential) {
-            $credential->ext_id = $user['id'];
-            $credential->save();
-        } else {
+        if (!$credential) {
             $credential = Credential::create([
                 'username' => $user['login'] ?? $user['firstname'] . ' ' . ($user['lastname'] ?? ''),
                 'server_id' => $this->server->id,
                 'ext_id' => $user['id']
             ]);
-            $user = $credential->user()->create([
-                'email' => $user['mail'] ?? null,
-                'name' => $user['login'] ?? 
-                    $user['firstname'] . ' ' . ($user['lastname'] ?? '') 
-                    ?? $user['id'] . $this->server->base_url,
-                'email_verified_at' => Carbon::now(),
-                'password' => Str::random(64)
-            ]);
-            $credential->user_id = $user->id;
+            
+            if (isset($user['mail'])) {
+                $localUser = User::where('email', $user['mail'])->orWhere('name', $user['firstname'] . ' ' . ($user['lastname'] ?? ''))->first();
+            } else {
+                $localUser = User::where('name', $user['firstname'] . ' ' . ($user['lastname'] ?? ''))->first();
+            }
+
+            if (!$localUser) {
+                $localUser = User::create([
+                    'email' => $user['mail'] ?? null,
+                    'name' => $user['login'] ?? 
+                        $user['firstname'] . ' ' . ($user['lastname'] ?? '') 
+                        ?? $user['id'] . $this->server->base_url,
+                    'password' => Str::random(64)
+                ]);
+            } else if (isset($user['mail'])) {
+                $localUser->update([
+                    'email' => $user['mail']
+                ]);
+            }
+            
+            $credential->user_id = $localUser->id;
             $credential->save();
         }
         return $credential->user;

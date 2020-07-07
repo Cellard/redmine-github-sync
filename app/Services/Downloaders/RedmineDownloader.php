@@ -23,9 +23,7 @@ class RedmineDownloader
     public function download()
     {
         $this->connect($this->credential->server->base_uri, $this->credential->api_key);
-        if (!$this->credential->ext_id) {
-            $this->setCregentialExtId();
-        }
+        $this->setCregentialExtId();
         $this->downloadProjects();
         $this->downloadLabels();
     }
