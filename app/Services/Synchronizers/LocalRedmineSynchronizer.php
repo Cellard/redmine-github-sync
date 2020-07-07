@@ -242,7 +242,7 @@ class LocalRedmineSynchronizer {
             'subject' => $localIssue->subject,
             'description' => $localIssue->description,
             'project_id' => $project->ext_id,
-            'assigned_to_id' => $assigne['ext_id'] ?? $this->mirror->owner_id,
+            'assigned_to_id' => $assigne['ext_id'] ?? $this->mirror->owner->credentials()->where('server_id', $project->server_id)->first()->ext_id,
             'estimated_hours' => $localIssue->estimated_hours,
             'done_ratio' => $localIssue->done_ratio,
             'start_date' => $localIssue->started_at ? $localIssue->started_at->toDateString() : null,
