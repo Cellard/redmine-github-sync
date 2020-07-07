@@ -24,8 +24,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
-        $schedule->command('it-sync:download')->dailyAt('03:00');
+        $schedule->command('it:download')->daily();
+        $schedule->command('it:sync')->everyFiveMinutes();
     }
 
     /**

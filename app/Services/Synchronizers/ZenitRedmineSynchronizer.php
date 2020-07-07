@@ -3,6 +3,7 @@
 namespace App\Services\Synchronizers;
 
 use App\Issue;
+use App\IssueComment;
 use App\Project;
 use Carbon\Carbon;
 
