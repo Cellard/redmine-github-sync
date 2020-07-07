@@ -86,4 +86,24 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
         $attributes['assigned_to_id'] = self::MEDIA_GROUP_ID;
         return (array)$this->client->issue->create($attributes);
     }
+
+    protected function pushComment(IssueComment $comment, Project $project, int $issueId): void
+    {
+        if ($credential = $comment->author->credentials()->where('server_id', $this->server->id)->first()) {
+            $this->connect($credential->api_key);
+        } else {
+            $this->connect();
+        }
+
+        try {
+            $this->updateRemoteIssue($issueId, ['notes' => $comment->body]);
+            $comments = $this->getComments($issueId);
+            $comment->syncedComments()->create([
+                'ext_id' => end($comments)['id'],
+                'project_id' => $project->id
+            ]);
+        } catch (\Throwable $th) {
+            dump($th->getMessage());
+        }
+    }
 }
