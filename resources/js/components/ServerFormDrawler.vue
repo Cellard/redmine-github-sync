@@ -126,6 +126,7 @@
               }
             });
           } else {
+            this.formLoading = false;
             return false;
           }
           this.formLoading = false;

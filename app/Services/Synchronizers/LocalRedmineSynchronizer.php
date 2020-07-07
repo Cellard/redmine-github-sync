@@ -328,7 +328,7 @@ class LocalRedmineSynchronizer {
             'finished_at' => isset($issue['due_date']) 
                 ? Carbon::parse($issue['due_date'])->setTimezone(config('app.timezone')) 
                 : null,
-            'assignee_id' => $assignee['id'] ?? null,
+            'assignee_id' => $assignee ? $assignee->id : $this->mirror->owner_id,
             'estimated_hours' => $issue['estimated_hours'] ?? null,
             'done_ratio' => $issue['done_ratio'] ?? null,
             'description' => $issue['description'] ?? null,
@@ -345,7 +345,7 @@ class LocalRedmineSynchronizer {
             'ext_id' => $issue['id'],
             'project_id' => $project->id,
             'author_id' => $author['id'],
-            'assignee_id' => $assignee['id'] ?? null,
+            'assignee_id' => $assignee ? $assignee->id : $this->mirror->owner_id,
             'subject' => $issue['subject'],
             'estimated_hours' => $issue['estimated_hours'] ?? null,
             'done_ratio' => $issue['done_ratio'] ?? null,
