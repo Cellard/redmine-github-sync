@@ -56,6 +56,7 @@ class RedmineDownloader
             ]);
         }
         $this->credential->ext_id = $account['id'];
+        $this->credential->user_id = $localUser->id;
         $this->credential->save();
     }
 
