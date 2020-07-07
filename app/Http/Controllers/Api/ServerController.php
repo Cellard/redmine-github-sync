@@ -77,6 +77,7 @@ class ServerController extends Controller
                 'api_key' => $request->api_key
             ]);
         }
+        Download::dispatch($credential);
         return new ServerResource($server);
     }
 
