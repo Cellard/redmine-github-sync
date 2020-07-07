@@ -197,7 +197,7 @@ class LocalRedmineSynchronizer {
                     if ($labelId = IssueLabelsMapper::findIdInLabels($label->id, $labelsMap)) {
                         $this->attachOneLabel($localIssue, $issue, $type, $labelId);
                     }  else {
-                        $message = 'Not matched label: ' . $issue[$type]['name'];
+                        $message = 'Cannot attach label. Not matched label: ' . $issue[$type]['name'];
                         dump($message);
                         FacadesLog::error($message);
                         $this->log->errors()->create([
@@ -205,7 +205,7 @@ class LocalRedmineSynchronizer {
                         ]);
                     }
                 } else {
-                    $message = 'Not matched label: ' . $localIssue->$type()->name;
+                    $message = 'Cannot attach label. Not matched label: ' . $localIssue->$type()->name;
                     dump($message);
                     FacadesLog::error($message);
                     $this->log->errors()->create([
@@ -242,7 +242,7 @@ class LocalRedmineSynchronizer {
             'subject' => $localIssue->subject,
             'description' => $localIssue->description,
             'project_id' => $project->ext_id,
-            'assigned_to_id' => $assigne['ext_id'] ?? null,
+            'assigned_to_id' => $assigne['ext_id'] ?? $this->mirror->owner_id,
             'estimated_hours' => $localIssue->estimated_hours,
             'done_ratio' => $localIssue->done_ratio,
             'start_date' => $localIssue->started_at ? $localIssue->started_at->toDateString() : null,
@@ -260,7 +260,7 @@ class LocalRedmineSynchronizer {
                 if ($ext_id = IssueLabelsMapper::getLabelExtId($localIssue, $labelsMap, 'tracker')) {
                     $attributes['tracker_id'] = $ext_id;
                 } else {
-                    $message = 'Not matched label: ' . $localIssue->tracker()->name;
+                    $message = 'Cannot update remote label. Not matched label: ' . $localIssue->tracker()->name;
                     dump($message);
                     FacadesLog::error($message);
                     $this->log->errors()->create([
@@ -270,7 +270,7 @@ class LocalRedmineSynchronizer {
                 if ($ext_id = IssueLabelsMapper::getLabelExtId($localIssue, $labelsMap, 'status')) {
                     $attributes['status_id'] = $ext_id;
                 } else {
-                    $message = 'Not matched label: ' . $localIssue->status()->name;
+                    $message = 'Cannot update remote label. Not matched label: ' . $localIssue->status()->name;
                     dump($message);
                     FacadesLog::error($message);
                     $this->log->errors()->create([
@@ -280,7 +280,7 @@ class LocalRedmineSynchronizer {
                 if ($ext_id = IssueLabelsMapper::getLabelExtId($localIssue, $labelsMap, 'priority')) {
                     $attributes['priority_id'] = $ext_id;
                 } else {
-                    $message = 'Not matched label: ' . $localIssue->priority()->name;
+                    $message = 'Cannot update remote label. Not matched label: ' . $localIssue->priority()->name;
                     dump($message);
                     FacadesLog::error($message);
                     $this->log->errors()->create([
@@ -379,6 +379,9 @@ class LocalRedmineSynchronizer {
     protected function updateOrCreateUser(array $user): User
     {
         $credential = Credential::where([
+            'ext_id' => $user['id'],
+            'server_id' => $this->server->id
+        ])->orWhere([
             'username' => $user['login'] ?? $user['firstname'] . ' ' . ($user['lastname'] ?? ''),
             'server_id' => $this->server->id
         ])->first();
