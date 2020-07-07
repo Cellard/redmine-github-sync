@@ -2,8 +2,11 @@
 
 namespace App\Services\Downloaders;
 
+use Str;
 use App\Label;
 use App\Project;
+use App\User;
+use Illuminate\Support\Facades\Log;
 
 class RedmineDownloader
 {
@@ -22,15 +25,36 @@ class RedmineDownloader
 
     public function download()
     {
-        $this->connect($this->credential->server->base_uri, $this->credential->api_key);
-        $this->setCregentialExtId();
-        $this->downloadProjects();
-        $this->downloadLabels();
+        try {
+            $this->connect($this->credential->server->base_uri, $this->credential->api_key);
+            $this->setCregentialExtId();
+            $this->downloadProjects();
+            $this->downloadLabels();
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+        }
     }
 
     private function setCregentialExtId()
     {
         $account = $this->client->user->getCurrentUser()['user'];
+        if (isset($account['mail'])) {
+            $localUser = User::where('email', $account['mail'])->orWhere('name', $account['firstname'] . ' ' . ($account['lastname'] ?? ''))->first();
+        } else {
+            $localUser = User::where('name', $account['firstname'] . ' ' . ($account['lastname'] ?? ''))->first();
+        }
+
+        if (!$localUser) {
+            $localUser = User::create([
+                'email' => $account['mail'] ?? null,
+                'name' => $account['firstname'] . ' ' . ($account['lastname'] ?? ''),
+                'password' => Str::random(64)
+            ]);
+        } else if (isset($account['mail'])) {
+            $localUser->update([
+                'email' => $account['mail']
+            ]);
+        }
         $this->credential->ext_id = $account['id'];
         $this->credential->save();
     }

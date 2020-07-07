@@ -399,9 +399,7 @@ class LocalRedmineSynchronizer {
             if (!$localUser) {
                 $localUser = User::create([
                     'email' => $user['mail'] ?? null,
-                    'name' => $user['login'] ?? 
-                        $user['firstname'] . ' ' . ($user['lastname'] ?? '') 
-                        ?? $user['id'] . $this->server->base_url,
+                    'name' => $user['firstname'] . ' ' . ($user['lastname'] ?? ''),
                     'password' => Str::random(64)
                 ]);
             } else if (isset($user['mail'])) {
