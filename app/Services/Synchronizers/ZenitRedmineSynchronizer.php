@@ -81,6 +81,9 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
 
     protected function updateRemoteIssue(int $id, array $attributes)
     {
+        if (isset($attributes['custom_fields'])) {
+            unset($attributes['custom_fields']);
+        }
         $attributes['assigned_to_id'] = self::MEDIA_GROUP_ID;
         $this->client->issue->update($id, $attributes);
         return $this->client->issue->show($id)['issue'];
@@ -88,6 +91,9 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
 
     protected function createRemoteIssue(array $attributes)
     {
+        if (isset($attributes['custom_fields'])) {
+            unset($attributes['custom_fields']);
+        }
         $attributes['assigned_to_id'] = self::MEDIA_GROUP_ID;
         return (array)$this->client->issue->create($attributes);
     }

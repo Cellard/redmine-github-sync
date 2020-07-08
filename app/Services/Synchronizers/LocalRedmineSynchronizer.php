@@ -250,6 +250,12 @@ class LocalRedmineSynchronizer {
             'author_id' => $this->getAccount()['id']
         ];
 
+        if (!$syncedIssue || $syncedIssue->ext_id !== $localIssue->ext_id) {
+            $attributes['custom_fields']= [
+                ['id' => 27, 'value' => $localIssue->project->server->base_uri . 'issues/' . $localIssue->ext_id]
+            ];
+        }
+
         if ($syncedIssue && $syncedIssue->ext_id === $localIssue->ext_id) {
             $attributes['tracker_id'] = $localIssue->tracker()->ext_id;
             $attributes['status_id'] = $localIssue->status()->ext_id;
