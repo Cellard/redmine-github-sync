@@ -3,19 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ApiRequest;
 use App\Http\Requests\StoreMirror;
 use App\Http\Resources\DefaultResource;
 use App\Http\Resources\MirrorResource;
 use App\Mirror;
+use App\Project;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class MirrorController extends Controller
 {
-    public function index(ApiRequest $request)
+    public function index()
     {
-        $mirrors = $request->user()->mirrors()->with(['left', 'left.server', 'right', 'right.server'])->get();
+        $mirrors = Mirror::with(['left', 'left.server', 'right', 'right.server'])->get();
         return DefaultResource::collection($mirrors);
     }
 
@@ -23,9 +23,9 @@ class MirrorController extends Controller
     {
         $mirror = Mirror::create([
             'user_id' => Auth::id(),
-            'left_type' => 'App\Project',
+            'left_type' => Project::class,
             'left_id' => $request->left['project'],
-            'right_type' => 'App\Project',
+            'right_type' => Project::class,
             'right_id' => $request->right['project'],
             'ltr_labels' => $request->ltrLabelsMap,
             'rtl_labels' => $request->rtlLabelsMap,
