@@ -42,7 +42,6 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
     {
         $localIssue->update([
             'subject' => $issue['subject'],
-            'assignee_id' => $this->mirror->owner_id,
             'estimated_hours' => $issue['estimated_hours'] ?? null,
             'done_ratio' => $issue['done_ratio'] ?? null,
             'description' => $issue['description'] ?? null,
