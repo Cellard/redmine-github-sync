@@ -27,8 +27,7 @@ class Server extends Model
     use SoftDeletes;
 
     const DRIVERS = [
-        'redmine',
-        'gogs'
+        'redmine'
     ];
 
     protected $fillable = [
