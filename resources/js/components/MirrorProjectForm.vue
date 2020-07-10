@@ -1,7 +1,7 @@
 <template>
   <el-form :inline="true" :rules="rules" ref="mirrorForm" :model="mirror" label-position="top">
     <el-form-item :error="errors.server ? errors.server[0] : ''" label="Server" prop="server">
-      <el-select @change="onServerChange" v-model="mirror.server" placeholder="Select">
+      <el-select filterable @change="onServerChange" v-model="mirror.server" placeholder="Select">
         <el-option
           v-for="item in servers"
           :key="item.id"
@@ -11,7 +11,7 @@
       </el-select>
     </el-form-item>
     <el-form-item :error="errors.server ? errors.server[0] : ''" label="Project" prop="project">
-      <el-select :disabled="!projects.length" v-model="mirror.project" placeholder="Select">
+      <el-select filterable :disabled="!projects.length" v-model="mirror.project" placeholder="Select">
         <el-option
           v-for="item in projects"
           :key="item.id"
