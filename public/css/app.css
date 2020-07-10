@@ -10887,6 +10887,11 @@ body {
   height: 100%;
 }
 
+html .el-select-dropdown__item,
+body .el-select-dropdown__item {
+  white-space: pre;
+}
+
 html #app,
 body #app {
   height: 100%;

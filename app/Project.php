@@ -31,7 +31,7 @@ class Project extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'server_id', 'ext_id', 'slug', 'name', 'description'
+        'server_id', 'ext_id', 'parent_id', 'slug', 'name', 'description'
     ];
 
     public function server()
@@ -132,5 +132,18 @@ class Project extends Model
             case 'redmine':
                 return RedmineProject::createFromLocal($this);
         }
+    }
+
+    public static function sortByParent($projects, $parentId, $tabsCount = 0) {
+        $output = [];
+        foreach ($projects as $item) {
+            if ($item->parent_id === $parentId) {
+                $childs = self::sortByParent($projects, $item->id, $tabsCount + 1);
+                $item->name = str_repeat('    ', $tabsCount) . $item->name;
+                $output[] = $item;
+                $output = array_merge($output, $childs);
+            }
+        }
+        return $output;
     }
 }

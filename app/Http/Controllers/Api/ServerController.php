@@ -8,6 +8,7 @@ use App\Http\Requests\StoreServer;
 use App\Http\Resources\DefaultResource;
 use App\Http\Resources\ServerResource;
 use App\Jobs\Download;
+use App\Project;
 use App\Server;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
@@ -97,7 +98,9 @@ class ServerController extends Controller
 
     public function projects($id)
     {
-        return DefaultResource::collection(Server::find($id)->projects);
+        $projects = Server::find($id)->projects()->orderBy('parent_id')->get();
+        $projects = Project::sortByParent($projects, null);
+        return DefaultResource::collection($projects);
     }
 
     public function labels($id)

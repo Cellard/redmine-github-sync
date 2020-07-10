@@ -10,6 +10,10 @@
 html,body {
   height:100%;
 
+  .el-select-dropdown__item {
+    white-space: pre;
+  }
+  
   #app {
     height: 100%;
   

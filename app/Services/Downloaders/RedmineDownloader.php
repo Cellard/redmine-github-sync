@@ -72,12 +72,26 @@ class RedmineDownloader
             $projects = array_merge($projects, $response['projects']);
         }
         foreach ($projects as $project) {
+            if ($project['name'] === 'ФК «Зенит»') {
+                $test = '123';
+            }
+            if (isset($project['parent'])) {
+                $parent = Project::where([
+                    'server_id' => $this->credential->server->id,
+                    'ext_id' => $project['parent']['id']
+                ])->first();
+                $parentId = $parent ? $parent->id : null; 
+            } else {
+                $parentId = null;
+            }
+
             Project::updateOrCreate(
                 [
                     'server_id' => $this->credential->server->id,
                     'ext_id' => $project['id']
                 ],
                 [
+                    'parent_id' => $parentId,
                     'slug' => $project['identifier'],
                     'name' => $project['name'],
                     'description' => $project['description'] ?? null,
