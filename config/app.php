@@ -176,7 +176,8 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
-        App\Providers\IssueLabelsMapperServiceProvider::class
+        App\Providers\IssueLabelsMapperServiceProvider::class,
+        App\Providers\RedmineCommentsCreatorServiceProvider::class
 
     ],
 
@@ -230,7 +231,8 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
 
-        'IssueLabelsMapper'   =>  App\Facades\IssueLabelsMapperFacade::class
+        'IssueLabelsMapper'   =>  App\Facades\IssueLabelsMapperFacade::class,
+        'RedmineCommentsCreator'   =>  App\Facades\RedmineCommentsCreatorFacade::class
     ],
 
 ];

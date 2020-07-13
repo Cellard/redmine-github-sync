@@ -68,7 +68,19 @@ class RedmineSynchroniserTest extends TestCase
                             "done_ratio" => 0,
                             "created_on" => "2020-07-08T09:09:38Z",
                             "updated_on" => "2020-07-08T13:10:06Z",
-                            "journals" => [],
+                            "journals" => [
+                                [
+                                    "id" => 47001,
+                                    "user" => [
+                                        "id" => 149,
+                                        "name" => "Михаил Погребников"
+                                    ],
+                                    "notes" => "Решена",
+                                    "created_on" => "2020-07-08T13:10:06Z",
+                                    "details" => [
+                                    ]
+                                ]
+                            ],
                             "attachments" => []
                         ]
                     ]
@@ -136,7 +148,19 @@ class RedmineSynchroniserTest extends TestCase
                             "done_ratio" => 0,
                             "created_on" => "2020-07-08T09:09:38Z",
                             "updated_on" => "2020-07-08T13:10:06Z",
-                            "journals" => [],
+                            "journals" => [
+                                [
+                                    "id" => 47001,
+                                    "user" => [
+                                        "id" => 149,
+                                        "name" => "Михаил Погребников"
+                                    ],
+                                    "notes" => "Решена",
+                                    "created_on" => "2020-07-08T13:10:06Z",
+                                    "details" => [
+                                    ]
+                                ]
+                            ],
                             "attachments" => []
                         ]
                     ]
@@ -202,6 +226,7 @@ class RedmineSynchroniserTest extends TestCase
         $this->assertEquals($issue->ext_id, $issues['issues'][0]['id']);
         $this->assertEquals($issue->description, $issues['issues'][0]['description']);
         $this->assertCount(1, $issue->syncedIssues);
+        $this->assertCount(1, $issue->comments);
     }
 
     /**

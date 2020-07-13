@@ -121,19 +121,6 @@ class Project extends Model
         return $this->enumerations()->where('type', 'priority');
     }
 
-    /**
-     * @return ProjectContract
-     */
-    public function contract()
-    {
-        switch ($this->server->driver) {
-            case 'gogs':
-                return GogsProject::createFromLocal($this);
-            case 'redmine':
-                return RedmineProject::createFromLocal($this);
-        }
-    }
-
     public static function sortByParent($projects, $parentId, $tabsCount = 0) {
         $output = [];
         foreach ($projects as $item) {

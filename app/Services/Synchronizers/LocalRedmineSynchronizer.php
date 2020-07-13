@@ -11,6 +11,7 @@ use App\IssueTracker\AccessException;
 use App\Mirror;
 use App\Project;
 use IssueLabelsMapper;
+use RedmineCommentsCreator;
 use App\User;
 use App\Log;
 use Carbon\Carbon;
@@ -429,6 +430,14 @@ class LocalRedmineSynchronizer {
                 $item['user'] = $this->getUser($item['user']['id']);
                 $comments[] =$item;
             }
+            $customNotes = RedmineCommentsCreator::createFromJournalDetails($item['details'], $this->server->id);
+            if ($customNotes) {
+                if (!$item['user'] instanceof \App\User) {
+                    $item['user'] = $this->getUser($item['user']['id']);
+                }
+                $item['notes'] = $customNotes;
+                $comments[] = $item;
+            } 
         }
         return $comments;
     }
