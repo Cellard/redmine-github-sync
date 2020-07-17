@@ -435,8 +435,12 @@ class LocalRedmineSynchronizer {
                 if (!$item['user'] instanceof \App\User) {
                     $item['user'] = $this->getUser($item['user']['id']);
                 }
-                $item['notes'] = $customNotes;
-                $comments[] = $item;
+                if ($item['notes']) {
+                    $comments[count($comments) - 1]['notes'] = $customNotes . $comments[count($comments) - 1]['notes'];
+                } else {
+                    $item['notes'] = $customNotes;
+                    $comments[] = $item;
+                }
             } 
         }
         return $comments;
