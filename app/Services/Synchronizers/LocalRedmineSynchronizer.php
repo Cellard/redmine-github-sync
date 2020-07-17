@@ -261,7 +261,7 @@ class LocalRedmineSynchronizer {
             $attributes['tracker_id'] = $localIssue->tracker()->ext_id;
             $attributes['status_id'] = $localIssue->status()->ext_id;
             $attributes['priority_id'] = $localIssue->priority()->ext_id;
-        } else {
+        } else if (!$syncedIssue) {
             $labelsMap = $this->mirror->getMirrorLabelsMap($project);
             if ($labelsMap) {
                 if ($ext_id = IssueLabelsMapper::getLabelExtId($localIssue, $labelsMap, 'tracker')) {
