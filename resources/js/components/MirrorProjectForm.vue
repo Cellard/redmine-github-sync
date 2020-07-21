@@ -10,10 +10,20 @@
         </el-option>
       </el-select>
     </el-form-item>
-    <el-form-item :error="errors.server ? errors.server[0] : ''" label="Project" prop="project">
-      <el-select filterable :disabled="!projects.length" v-model="mirror.project" placeholder="Select">
+    <el-form-item :error="errors.project ? errors.project[0] : ''" label="Project" prop="project">
+      <el-select filterable @change="fetchMilestones" :disabled="!projects.length" v-model="mirror.project" placeholder="Select">
         <el-option
           v-for="item in projects"
+          :key="item.id"
+          :label="item.name"
+          :value="item.id">
+        </el-option>
+      </el-select>
+    </el-form-item>
+    <el-form-item :error="errors.milestone ? errors.milestone[0] : ''" label="Milestone (Version)" prop="milestone">
+      <el-select filterable :disabled="!milestones.length" v-model="mirror.milestone" placeholder="Select">
+        <el-option
+          v-for="item in milestones"
           :key="item.id"
           :label="item.name"
           :value="item.id">
@@ -35,6 +45,7 @@
         direction: 'rtl',
         servers: [],
         projects: [],
+        milestones: [],
         rules: {
           server: [
             { required: true, message: 'Please select server', trigger: 'blur' }
@@ -56,8 +67,21 @@
       async mirror(newValue) {
         this.fetchProjects(newValue.server);
       },
+      async project(newValue) {
+        this.fetchMilestones(newValue.project);
+      },
     },
     methods: {
+      fetchMilestones: function (projectId) {
+        if (projectId) {
+          this.$http.get('/api/projects/' + projectId + '/milestones')
+            .then(response => {
+              this.milestones = response.data.data;
+            });
+        } else {
+          this.milestones = []
+        }
+      },
       fetchServers: function () {
         this.$http.get('/api/servers')
           .then(response => {
@@ -80,8 +104,12 @@
             .then(response => {
               this.projects = response.data.data;
             });
+          if (this.mirror.project) {
+            this.fetchMilestones(this.mirror.project);
+          }
         } else {
-          this.projects = []
+          this.projects = [];
+          this.milestones = [];
         }
       }
     },

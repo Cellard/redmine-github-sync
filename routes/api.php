@@ -17,6 +17,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/drivers', 'Api\DriverController@index')->name('drivers.index');
     Route::apiResource('servers', 'Api\ServerController');
     Route::get('/servers/{id}/projects', 'Api\ServerController@projects');
+    Route::get('/projects/{id}/milestones', 'Api\ProjectController@milestones');
     Route::get('/servers/{id}/labels', 'Api\ServerController@labels');
     Route::apiResource('mirrors', 'Api\MirrorController');
     Route::apiResource('users', 'Api\UserController')->only([

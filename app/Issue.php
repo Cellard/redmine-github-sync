@@ -34,6 +34,7 @@ class Issue extends Model
         'ext_id', 
         'author_id', 
         'assignee_id',
+        'milestone_id',
         'subject', 
         'description',
         'started_at',

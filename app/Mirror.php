@@ -22,8 +22,10 @@ class Mirror extends Model
         'user_id',
         'left_type',
         'left_id',
+        'left_milestone_id',
         'right_type',
         'right_id',
+        'right_milestone_id',
         'ltr_labels',
         'rtl_labels',
         'synced_at',
@@ -126,6 +128,25 @@ class Mirror extends Model
         return $this->hasMany(MirrorLabel::class);
     }
 
+    public function leftMilestone()
+    {
+        return $this->belongsTo(Milestone::class, 'left_milestone_id');
+    }
+
+    public function rightMilestone()
+    {
+        return $this->belongsTo(Milestone::class, 'right_milestone_id');
+    }
+
+    public function getMilestone($project)
+    {
+        if ($project->id === $this->left->id) {
+            return $this->leftMilestone;
+        } else if ($project->id === $this->right->id) {
+            return $this->rightMilestone;
+        }
+    }
+
     public function getLabelsMap($project)
     {
         if ($project->id === $this->left->id) {
@@ -160,9 +181,13 @@ class Mirror extends Model
     {
         $project = $position === 'left' ? $this->left : $this->right;
         $mirrorProject = $position === 'left' ? $this->right : $this->left;
+        $milestone = $this->getMilestone($mirrorProject);
 
         if ($this->config === 'ltr' && $position === 'left'
         || $this->config === 'rtl' && $position === 'right') {
+            if ($milestone) {
+                return $project->queryIssuesToPush()->where('milestone_id', $milestone->id);
+            }
             return $project->queryIssuesToPush();
         }
 
@@ -170,11 +195,15 @@ class Mirror extends Model
             $query->where('project_id', $mirrorProject->id);
         });
 
-        return $mirrorIssues->whereHas('syncedIssues', function ($query) use ($project) {
+        $mirrorIssues = $mirrorIssues->whereHas('syncedIssues', function ($query) use ($project) {
             $query->where('project_id', $project->id)
                 ->whereColumn('synced_issues.updated_at', '<', 'issues.updated_at');
         })->orWhereDoesntHave('syncedIssues', function ($query) use ($project) {
             $query->where('project_id', $project->id);
         });
+        if ($milestone) {
+            return $mirrorIssues->where('milestone_id', $milestone->id);
+        }
+        return $mirrorIssues;
     }
 }

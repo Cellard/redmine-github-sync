@@ -14,6 +14,7 @@ use IssueLabelsMapper;
 use RedmineCommentsCreator;
 use App\User;
 use App\Log;
+use App\Milestone;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log as FacadesLog;
@@ -148,6 +149,11 @@ class LocalRedmineSynchronizer {
             $totalCount = $response['total_count'];
             $issues = array_merge($issues, $response['issues']);
         }
+        /*
+        fixed_version:array(2)
+        id:2982
+        name:"ЕЛК"
+        */
         return $issues;
     }
 
@@ -238,11 +244,12 @@ class LocalRedmineSynchronizer {
         $assigne = $localIssue->assignee 
             ? $project->server->credentials()->where('user_id', $localIssue->assignee->id)->first() 
             : null;
-            
+        $milestone = $this->mirror->getMilestone($project);
         $attributes = [
             'subject' => $localIssue->subject,
             'description' => $localIssue->description,
             'project_id' => $project->ext_id,
+            'fixed_version_id' => $milestone ? $milestone->ext_id : null,
             'assigned_to_id' => $assigne['ext_id'] ?? $this->mirror->owner->credentials()->where('server_id', $project->server_id)->first()->ext_id,
             'estimated_hours' => $localIssue->estimated_hours,
             'done_ratio' => $localIssue->done_ratio,
@@ -327,8 +334,15 @@ class LocalRedmineSynchronizer {
     protected function updateLocalIssue(array $issue, Issue $localIssue): Issue
     {
         $assignee = isset($issue['assigned_to']) ? $this->getUser($issue['assigned_to']['id']) : null;
+        if (isset($issue['fixed_version'])) {
+            $milestone = Milestone::where([
+                'ext_id' => $issue['fixed_version']['id'],
+                'project_id' => $localIssue->project_id
+            ])->first();
+        }
         $localIssue->update([
             'subject' => $issue['subject'],
+            'milestone_id' => $milestone->id ?? null,
             'started_at' => isset($issue['start_date']) 
                 ? Carbon::parse($issue['start_date'])->setTimezone(config('app.timezone'))
                 : null,
@@ -348,8 +362,15 @@ class LocalRedmineSynchronizer {
     {
         $assignee = isset($issue['assigned_to']) ? $this->getUser($issue['assigned_to']['id']) : null;
         $author = $this->getUser($issue['author']['id']);
+        if (isset($issue['fixed_version'])) {
+            $milestone = Milestone::where([
+                'ext_id' => $issue['fixed_version']['id'],
+                'project_id' => $project->id
+            ])->first();
+        }
         return Issue::create([
             'ext_id' => $issue['id'],
+            'milestone_id' => $milestone->id ?? null,
             'project_id' => $project->id,
             'author_id' => $author['id'],
             'assignee_id' => $assignee ? $assignee->id : $this->mirror->owner_id,

@@ -30,8 +30,8 @@ $factory->afterCreating(Issue::class, function ($issue) {
     $issue->comments()->save(factory(IssueComment::class)->make([
         'issue_id' => $issue->id
     ]));
-    $issue->files()->save(factory(IssueFile::class)->make([
+    /*$issue->files()->save(factory(IssueFile::class)->make([
         'issue_id' => $issue->id
-    ]));
+    ]));*/
 });
 

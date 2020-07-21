@@ -4,6 +4,7 @@ namespace App\Services\Downloaders;
 
 use Str;
 use App\Label;
+use App\Milestone;
 use App\Project;
 use App\User;
 use Illuminate\Support\Facades\Log;
@@ -72,9 +73,6 @@ class RedmineDownloader
             $projects = array_merge($projects, $response['projects']);
         }
         foreach ($projects as $project) {
-            if ($project['name'] === 'ФК «Зенит»') {
-                $test = '123';
-            }
             if (isset($project['parent'])) {
                 $parent = Project::where([
                     'server_id' => $this->credential->server->id,
@@ -85,7 +83,7 @@ class RedmineDownloader
                 $parentId = null;
             }
 
-            Project::updateOrCreate(
+            $project = Project::updateOrCreate(
                 [
                     'server_id' => $this->credential->server->id,
                     'ext_id' => $project['id']
@@ -97,6 +95,27 @@ class RedmineDownloader
                     'description' => $project['description'] ?? null,
                 ]
             );
+            $this->downloadVersions($project);
+        }
+    }
+
+    private function downloadVersions(Project $project)
+    {
+        $versions = $this->client->version->all($project->ext_id)['versions'];
+
+        foreach ($versions as $version) {
+            if ($version['status'] === 'open') {
+                Milestone::updateOrCreate(
+                    [
+                        'project_id' => $project->id,
+                        'ext_id' => $version['id']
+                    ],
+                    [
+                        'name' => $version['name'],
+                        'description' => $version['description'] ?? null,
+                    ]
+                );
+            }
         }
     }
 

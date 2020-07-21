@@ -153,7 +153,6 @@
         const response = await this.fetchData(newValue);
         if (response && response.status === 200) {
           const data = response.data.data;
-
           this.title = data.left.name + ' - ' + data.right.name;
           
           store.dispatch('setMirror', {
@@ -161,6 +160,7 @@
             value: {
               server: data.left.server_id,
               project: data.left.id,
+              milestone: data.left_milestone_id,
             }
           });
           store.dispatch('setMirror', {
@@ -168,6 +168,7 @@
             value: {
               server: data.right.server_id,
               project: data.right.id,
+              milestone: data.right_milestone_id,
             }
           });
           store.dispatch('setLabels', {
@@ -200,14 +201,16 @@
           position: 'left',
           value: {
             server: '',
-            project: ''
+            project: '',
+            milestone: '',
           }
         });
         store.dispatch('setMirror', {
           position: 'right',
           value: {
             server: '',
-            project: ''
+            project: '',
+            milestone: '',
           }
         });
         store.dispatch('setLabels', {
