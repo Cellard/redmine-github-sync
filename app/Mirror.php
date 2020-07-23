@@ -193,14 +193,15 @@ class Mirror extends Model
 
         $mirrorIssues = Issue::whereHas('syncedIssues', function ($query) use ($mirrorProject) {
             $query->where('project_id', $mirrorProject->id);
+        })->where(function ($query) use ($project) {
+            $query->whereHas('syncedIssues', function ($query) use ($project) {
+                $query->where('project_id', $project->id)
+                    ->whereColumn('synced_issues.updated_at', '<', 'issues.updated_at');
+            })->orWhereDoesntHave('syncedIssues', function ($query) use ($project) {
+                $query->where('project_id', $project->id);
+            });
         });
-
-        $mirrorIssues = $mirrorIssues->whereHas('syncedIssues', function ($query) use ($project) {
-            $query->where('project_id', $project->id)
-                ->whereColumn('synced_issues.updated_at', '<', 'issues.updated_at');
-        })->orWhereDoesntHave('syncedIssues', function ($query) use ($project) {
-            $query->where('project_id', $project->id);
-        });
+        
         if ($milestone) {
             return $mirrorIssues->where('milestone_id', $milestone->id);
         }
