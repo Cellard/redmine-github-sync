@@ -54,6 +54,11 @@ class Project extends Model
         return $this->hasMany(Issue::class);
     }
 
+    /**
+     * Возвращает запрос задач для отправки в Redmine (задачи которые обновлены, но изменения не отправлены)
+     *
+     * @return Builder
+     */
     public function queryIssuesToPush()
     {
         return $this->issues()->whereHas('syncedIssues', function ($query) {
@@ -121,6 +126,14 @@ class Project extends Model
         return $this->enumerations()->where('type', 'priority');
     }
 
+    /**
+     * Возвращает коллекцию отформатированную в соответствии с дочерними проектами (добавляет табуляцию для дочерних проектов)
+     *
+     * @param Collenction $projects
+     * @param integer $parentId
+     * @param integer $tabsCount
+     * @return Collenction
+     */
     public static function sortByParent($projects, $parentId, $tabsCount = 0) {
         $output = [];
         foreach ($projects as $item) {

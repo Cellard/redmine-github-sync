@@ -11,19 +11,40 @@ use Illuminate\Support\Facades\Log;
 
 class RedmineDownloader
 {
+    /**
+     * @var \Redmine\Client
+     */
     protected $client;
+
+    /**
+     * @var App\Credential
+     */
     protected $credential;
 
+    /**
+     * @param App\Credential $credential
+     */
     public function __construct($credential)
     {
         $this->credential = $credential;
     }
 
+    /**
+     * Создает клиент подключения к Redmine и присаивает его инстанс атрибуту $client
+     *
+     * @param string|null $apiKey
+     * @return void
+     */
     protected function connect(string $url, string $apiKey): void
     {
         $this->client = new \Redmine\Client($url, $apiKey);
     }
 
+    /**
+     * Сохраняет локально статические данные из Redmine (проекты и лейблы)
+     *
+     * @return void
+     */
     public function download()
     {
         try {
@@ -36,6 +57,11 @@ class RedmineDownloader
         }
     }
 
+    /**
+     * Сохраняет в БД внешний ИД пользователя из Redmine
+     *
+     * @return void
+     */
     private function setCregentialExtId()
     {
         $account = $this->client->user->getCurrentUser()['user'];
@@ -61,6 +87,11 @@ class RedmineDownloader
         $this->credential->save();
     }
 
+    /**
+     * Сохраняет локально проекты из Redmine
+     *
+     * @return void
+     */
     private function downloadProjects()
     {
         $offset = 0;
@@ -99,6 +130,12 @@ class RedmineDownloader
         }
     }
 
+    /**
+     * Сохраняет версии проектов
+     *
+     * @param Project $project
+     * @return void
+     */
     private function downloadVersions(Project $project)
     {
         $versions = $this->client->version->all($project->ext_id)['versions'];
@@ -119,6 +156,11 @@ class RedmineDownloader
         }
     }
 
+    /**
+     * Сохраняет лейблы
+     *
+     * @return void
+     */
     private function downloadLabels()
     {
         $this->downloadStatuses();
@@ -126,6 +168,11 @@ class RedmineDownloader
         $this->downloadPriorities();
     }
 
+    /**
+     * Сохраняет трекеры Redmine
+     *
+     * @return void
+     */
     private function downloadTrackers()
     {
         $trackers = $this->client->tracker->all()['trackers'];
@@ -145,6 +192,11 @@ class RedmineDownloader
         }
     }
 
+    /**
+     * Сохраняет статусы Redmine
+     *
+     * @return void
+     */
     private function downloadStatuses()
     {
         $statuses = $this->client->issue_status->all()['issue_statuses'];
@@ -164,6 +216,11 @@ class RedmineDownloader
         }
     }
 
+    /**
+     * Сохраняет приоритеты Redmine
+     *
+     * @return void
+     */
     private function downloadPriorities()
     {
         $priorities = $this->client->issue_priority->all()['issue_priorities'];

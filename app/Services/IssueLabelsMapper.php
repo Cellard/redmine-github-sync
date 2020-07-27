@@ -7,7 +7,15 @@ use App\Label;
 
 class IssueLabelsMapper
 {
-    public function getLabelByExtId(int $extId, $serverId, ?string $type = 'label')
+    /**
+     * Возврачает инстанс App\Label по ИД лейбла из редмайн и ИД сервера
+     *
+     * @param integer $extId
+     * @param integer $serverId
+     * @param string|null $type
+     * @return Label|null
+     */
+    public function getLabelByExtId(int $extId, int $serverId, ?string $type = 'label')
     {
         return Label::where([
             'ext_id' => $extId,
@@ -16,6 +24,14 @@ class IssueLabelsMapper
         ])->first();
     }
 
+    /**
+     * По типу лейбла возвращает внешний ИД сопоставленного в правилах Mirror лейбла
+     *
+     * @param Issue $issue
+     * @param array $labelsMap
+     * @param string|null $type
+     * @return integer|null
+     */
     public function getLabelExtId(Issue $issue, array $labelsMap, ?string $type = 'label')
     {
         $label = $issue->enumerations()->where('type', $type)->first();
@@ -31,6 +47,13 @@ class IssueLabelsMapper
         return null;
     }
 
+    /**
+     * Возвращает локальный ИД (из БД) сопоставленного лейбла
+     *
+     * @param integer $id
+     * @param array $labelsMap
+     * @return integer|null
+     */
     public function findIdInLabels(int $id, array $labelsMap)
     {
         foreach ($labelsMap as $item) {

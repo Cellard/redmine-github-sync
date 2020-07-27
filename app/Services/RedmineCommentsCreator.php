@@ -4,11 +4,6 @@ namespace App\Services;
 
 use App\Label;
 
-/*property:"attr"
-name:"status_id"
-old_value:"10"
-new_value:"2"
-*/
 class RedmineCommentsCreator
 {
     const AVAILABLE_ATTRS = [
@@ -26,6 +21,13 @@ class RedmineCommentsCreator
         ],
     ];
 
+    /**
+     * Возвращает строку "сымитированного" комментария (созданного из истории изменения статусов, трекеров и пр.)
+     *
+     * @param array $details
+     * @param integer $serverId
+     * @return string
+     */
     public function createFromJournalDetails(array $details, int $serverId)
     {
         $notes = [];

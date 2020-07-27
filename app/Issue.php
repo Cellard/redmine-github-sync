@@ -133,6 +133,12 @@ class Issue extends Model
         });
     }
 
+    /**
+     * Возвращает объект Builder запроса комментариев для отправки в Redmine
+     *
+     * @param integer $projectId
+     * @return Builder
+     */
     public function commentsToPush(int $projectId)
     {
         return $this->comments()->whereDoesntHave('syncedComments', function ($query) use ($projectId) {
@@ -140,6 +146,12 @@ class Issue extends Model
         });
     }
 
+    /**
+     * Возвращает объект Builder запроса файлов для отправки в Redmine
+     *
+     * @param integer $projectId
+     * @return Builder
+     */
     public function filesToPush(int $projectId)
     {
         return $this->files()->whereDoesntHave('syncedFiles', function ($query) use ($projectId) {

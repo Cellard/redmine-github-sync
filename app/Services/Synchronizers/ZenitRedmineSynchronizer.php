@@ -11,6 +11,14 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
 
     const MEDIA_GROUP_ID = 171;
 
+    /**
+     * Возвращает массив задач в соответствии с фильтрами
+     *
+     * @param Project $project
+     * @param Carbon|null $issuesUpdatedAtDate
+     * @param Carbon|null $issuesCreatedAtDate
+     * @return array
+     */
     protected function getIssues(Project $project, ?Carbon $issuesUpdatedAtDate, ?Carbon $issuesCreatedAtDate): array
     {
         $offset = 0;
@@ -38,6 +46,13 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
         return $issues;
     }
 
+    /**
+     * Обновляет задачу локально в БД
+     *
+     * @param array $issue
+     * @param Issue $localIssue
+     * @return Issue
+     */
     protected function updateLocalIssue(array $issue, Issue $localIssue): Issue
     {
         $localIssue->update([
@@ -56,6 +71,13 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
         return $localIssue;
     }
 
+    /**
+     * Создает задачу локально в БД
+     *
+     * @param array $issue
+     * @param Project $project
+     * @return Issue
+     */
     protected function createLocalIssue(array $issue, Project $project): Issue
     {
         $author = $this->getUser($issue['author']['id']);
@@ -78,6 +100,13 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
         ]);
     }
 
+    /**
+     * Обновляет задачу в Redmine
+     *
+     * @param integer $id
+     * @param array $attributes
+     * @return array
+     */
     protected function updateRemoteIssue(int $id, array $attributes)
     {
         if (isset($attributes['custom_fields'])) {
@@ -88,6 +117,12 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
         return $this->client->issue->show($id)['issue'];
     }
 
+    /**
+     * Создает задачу в Redmine
+     *
+     * @param array $attributes
+     * @return void
+     */
     protected function createRemoteIssue(array $attributes)
     {
         if (isset($attributes['custom_fields'])) {
@@ -97,6 +132,14 @@ class ZenitRedmineSynchronizer extends LocalRedmineSynchronizer {
         return (array)$this->client->issue->create($attributes);
     }
 
+    /**
+     * Отправляет комментарий в Redmine
+     *
+     * @param IssueComment $comment
+     * @param Project $project
+     * @param integer $issueId
+     * @return void
+     */
     protected function pushComment(IssueComment $comment, Project $project, int $issueId): void
     {
         if ($credential = $comment->author->credentials()->where('server_id', $this->server->id)->first()) {

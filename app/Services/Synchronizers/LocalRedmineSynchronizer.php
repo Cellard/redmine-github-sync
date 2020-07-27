@@ -22,16 +22,41 @@ use Illuminate\Support\Facades\Storage;
 
 class LocalRedmineSynchronizer {
 
+    /**
+     * @var \Redmine\Client
+     */
     protected $client;
+
+    /**
+     * @var App\Server
+     */
     protected $server;
+
+    /**
+     * @var App\Mirror
+     */
     protected $mirror;
+
+    /**
+     * @var App\Log
+     */
     protected $log;
 
+    /**
+     *
+     * @param App\Server $server
+     */
     public function __construct($server)
     {
         $this->server = $server;
     }
 
+    /**
+     * Создает клиент подключения к Redmine и присаивает его инстанс атрибуту $client
+     *
+     * @param string|null $apiKey
+     * @return void
+     */
     protected function connect(?string $apiKey = null): void
     {
         if (!$apiKey) {
@@ -40,11 +65,23 @@ class LocalRedmineSynchronizer {
         $this->client = new \Redmine\Client($this->server->base_uri, $apiKey);
     }
 
+    /**
+     * Присваивает атрибуту mirror инстанс объекта типа App\Mirror
+     *
+     * @param Mirror $mirror
+     * @return void
+     */
     protected function setMirror(Mirror $mirror): void
     {
         $this->mirror = $mirror;
     }
 
+    /**
+     * Создает запись лога в БД
+     *
+     * @param string $type
+     * @return void
+     */
     protected function createLog(string $type)
     {
         $this->log = Log::create([
@@ -54,6 +91,15 @@ class LocalRedmineSynchronizer {
         ]);
     }
 
+    /**
+     * Сохраняет все новые задачи и изменения по задачам локально в БД
+     *
+     * @param Project $project Проект из которого "тянуть" задачи
+     * @param Mirror $mirror "Заркало" к которому относится проект
+     * @param Carbon|null $issuesUpdatedAtDate Дата и время начиная с которой запрашивать обновления
+     * @param Carbon|null $issuesCreatedAtDate Дата и время начиная с которой запрашивать созданные задачи
+     * @return void
+     */
     public function pullIssues(
         Project $project, 
         Mirror $mirror, 
@@ -85,6 +131,14 @@ class LocalRedmineSynchronizer {
         $this->log->save();
     }
 
+    /**
+     * Отправляет все новые задачи и изменения в "зеркальный проект"
+     *
+     * @param Collection|Issue[] $issuesToPush Коллекция задач для отправки
+     * @param Project $project Проект куда отправляются задачи
+     * @param Mirror $mirror "Заркало" к которому относится проект
+     * @return void
+     */
     public function pushIssues(Collection $issuesToPush, Project $project, Mirror $mirror): void
     {
         $this->setMirror($mirror);
@@ -125,6 +179,14 @@ class LocalRedmineSynchronizer {
         $this->log->save();
     }
 
+    /**
+     * Возвращает массив задач в соответствии с фильтрами
+     *
+     * @param Project $project
+     * @param Carbon|null $issuesUpdatedAtDate
+     * @param Carbon|null $issuesCreatedAtDate
+     * @return array
+     */
     protected function getIssues(Project $project, ?Carbon $issuesUpdatedAtDate, ?Carbon $issuesCreatedAtDate): array
     {
         $offset = 0;
@@ -149,14 +211,16 @@ class LocalRedmineSynchronizer {
             $totalCount = $response['total_count'];
             $issues = array_merge($issues, $response['issues']);
         }
-        /*
-        fixed_version:array(2)
-        id:2982
-        name:"ЕЛК"
-        */
         return $issues;
     }
 
+    /**
+     * Обновляет или создает зажачу локально в БД
+     *
+     * @param array $issue Массив с атрибутами задачи из Redmine
+     * @param Project $project Проект, к которому относится задача
+     * @return void
+     */
     protected function updateOrCreateLocalIssue(array $issue, Project $project): void
     {
         $localIssue = (new Issue)->queryByRemote($issue['id'], $project->id)->first();
@@ -180,6 +244,14 @@ class LocalRedmineSynchronizer {
         $this->addFiles($issue, $localIssue, $project);
     }
 
+    /**
+     * Сопоставлят лейблы в соответствии с правилами в App\Mirror (ltr_labels, rtl_labels)
+     *
+     * @param Issue $localIssue Локальная задача в БД
+     * @param array $issue Массив с атрибутами задачи из Redmine
+     * @param Project $project Проект, к которому относится задача
+     * @return void
+     */
     protected function attachLabels(Issue $localIssue, array $issue, Project $project): void
     {
         $types = [
@@ -223,6 +295,15 @@ class LocalRedmineSynchronizer {
         }
     }
 
+    /**
+     * Сопоставлят лейбл в соответствии с правилами в App\Mirror (ltr_labels, rtl_labels)
+     *
+     * @param Issue $localIssue
+     * @param array $issue
+     * @param string $type
+     * @param integer $labelId
+     * @return void
+     */
     protected function attachOneLabel(Issue $localIssue, array $issue, string $type, int $labelId): void
     {
         if (!$localIssue->$type() || $localIssue->$type()->id !== $labelId) {
@@ -238,6 +319,13 @@ class LocalRedmineSynchronizer {
         }
     }
 
+    /**
+     * Обновляет или создает зажачу локально в Redmine
+     *
+     * @param Issue $localIssue
+     * @param Project $project
+     * @return array
+     */
     protected function updateOrCreateRemoteIssue(Issue $localIssue, Project $project): array
     {
         $syncedIssue = $project->syncedIssues()->where('issue_id', $localIssue->id)->first();
@@ -320,17 +408,37 @@ class LocalRedmineSynchronizer {
         return $response;
     }
 
+    /**
+     * Обновляет задачу в Redmine
+     *
+     * @param integer $id
+     * @param array $attributes
+     * @return array
+     */
     protected function updateRemoteIssue(int $id, array $attributes)
     {
         $this->client->issue->update($id, $attributes);
         return $this->client->issue->show($id)['issue'];
     }
 
+    /**
+     * Создает задачу в Redmine
+     *
+     * @param array $attributes
+     * @return void
+     */
     protected function createRemoteIssue(array $attributes)
     {
         return (array)$this->client->issue->create($attributes);
     }
 
+    /**
+     * Обновляет задачу локально в БД
+     *
+     * @param array $issue
+     * @param Issue $localIssue
+     * @return Issue
+     */
     protected function updateLocalIssue(array $issue, Issue $localIssue): Issue
     {
         $assignee = isset($issue['assigned_to']) ? $this->getUser($issue['assigned_to']['id']) : null;
@@ -358,6 +466,13 @@ class LocalRedmineSynchronizer {
         return $localIssue;
     }
 
+    /**
+     * Создает задачу локально в БД
+     *
+     * @param array $issue
+     * @param Project $project
+     * @return Issue
+     */
     protected function createLocalIssue(array $issue, Project $project): Issue
     {
         $assignee = isset($issue['assigned_to']) ? $this->getUser($issue['assigned_to']['id']) : null;
@@ -388,12 +503,23 @@ class LocalRedmineSynchronizer {
         ]);
     }
 
+    /**
+     * Получает пользователя из Redmine по ИД и сопоставляет его с локальным пользователем
+     *
+     * @param integer $id
+     * @return User
+     */
     protected function getUser(int $id): User
     {
         $user = $this->client->user->show($id)['user'];
         return $this->updateOrCreateUser($user);
     }
 
+    /**
+     * Возвращает массив с атрибутами текущего пользователя Redmine (под которым создано подключение)
+     *
+     * @return array
+     */
     protected function getAccount(): array
     {
         $response = $this->client->user->getCurrentUser();
@@ -404,6 +530,12 @@ class LocalRedmineSynchronizer {
         }
     }
 
+    /**
+     * Создает пользователя Redmine локально в БД или обновляет его атрибуты
+     *
+     * @param array $user
+     * @return User
+     */
     protected function updateOrCreateUser(array $user): User
     {
         $credential = Credential::where([
@@ -442,6 +574,12 @@ class LocalRedmineSynchronizer {
         return $credential->user;
     }
 
+    /**
+     * Возвращает массив всех комментариев по задаче из Redmine (в том числе и изменение статусов)
+     *
+     * @param integer $id
+     * @return array
+     */
     protected function getComments(int $id): array
     {
         $comments = [];
@@ -467,6 +605,14 @@ class LocalRedmineSynchronizer {
         return $comments;
     }
 
+    /**
+     * Создает комментарий по задаче локально в БД
+     *
+     * @param array $issue
+     * @param Issue $localIssue
+     * @param Project $project
+     * @return void
+     */
     protected function addComments(array $issue, Issue $localIssue, Project $project): void
     {
         $comments = $this->getComments($issue['id']);
@@ -486,6 +632,14 @@ class LocalRedmineSynchronizer {
         }
     }
 
+    /**
+     * Отправляет комментарий в Redmine
+     *
+     * @param IssueComment $comment
+     * @param Project $project
+     * @param integer $issueId
+     * @return void
+     */
     protected function pushComment(IssueComment $comment, Project $project, int $issueId): void
     {
         if ($credential = $comment->author->credentials()->where('server_id', $this->server->id)->first()) {
@@ -507,6 +661,12 @@ class LocalRedmineSynchronizer {
         }
     }
 
+    /**
+     * Возвращает массив прикрепленных к задаче файлов
+     *
+     * @param integer $id
+     * @return array
+     */
     protected function getFiles(int $id): array
     {
         $files = [];
@@ -519,6 +679,14 @@ class LocalRedmineSynchronizer {
         return $files;
     }
 
+    /**
+     * Сохраняет файлы из Redmine локально на диск и в БД
+     *
+     * @param array $issue
+     * @param Issue $localIssue
+     * @param Project $project
+     * @return void
+     */
     protected function addFiles(array $issue, Issue $localIssue, Project $project): void
     {
         $files = $this->getFiles($issue['id']);
@@ -548,6 +716,14 @@ class LocalRedmineSynchronizer {
         }
     }
 
+    /**
+     * Отправляет файл в Redmine
+     *
+     * @param IssueFile $file
+     * @param Project $project
+     * @param integer $issueId
+     * @return void
+     */
     protected function pushFile(IssueFile $file, Project $project, int $issueId): void
     {
         if ($credential = $file->author->credentials()->where('server_id', $this->server->id)->first()) {
