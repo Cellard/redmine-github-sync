@@ -49,7 +49,7 @@ class RedmineDownloader
     {
         try {
             $this->connect($this->credential->server->base_uri, $this->credential->api_key);
-            $this->setCregentialExtId();
+            $this->setCredentialExtId();
             $this->downloadProjects();
             $this->downloadLabels();
         } catch (\Throwable $th) {
@@ -62,7 +62,7 @@ class RedmineDownloader
      *
      * @return void
      */
-    private function setCregentialExtId()
+    private function setCredentialExtId()
     {
         $account = $this->client->user->getCurrentUser()['user'];
         if (isset($account['mail'])) {
@@ -109,7 +109,7 @@ class RedmineDownloader
                     'server_id' => $this->credential->server->id,
                     'ext_id' => $project['parent']['id']
                 ])->first();
-                $parentId = $parent ? $parent->id : null; 
+                $parentId = $parent ? $parent->id : null;
             } else {
                 $parentId = null;
             }
